@@ -14,9 +14,10 @@
 
     <modules>
         <module>common</module>
-        <module>ewm</module>
+        <module>core</module>
         <module>stats</module>
         <module>rest-service-gateway</module>
+        <module>infra</module>
     </modules>
 
     <groupId>ru.practicum</groupId>

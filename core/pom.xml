@@ -9,11 +9,11 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>ewm</artifactId>
+    <artifactId>core</artifactId>
     <packaging>pom</packaging>
 
     <modules>
-        <module>ewm-dto</module>
+        <module>main-dto</module>
         <module>main-service</module>
     </modules>
 
