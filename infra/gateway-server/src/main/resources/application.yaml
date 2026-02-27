@@ -1,8 +1,10 @@
 spring:
+  main:
+    web-application-type: reactive  # принудительно используем WebFlux
   application:
     name: gateway-server
   config:
-    import: "configserver:"
+    import: "optional:configserver:"
   cloud:
     config:
       # не загружать другие компоненты до получения конфигурации

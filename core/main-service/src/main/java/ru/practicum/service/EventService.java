@@ -54,7 +54,7 @@ public class EventService {
     private final ParticipationRequestRepository requestRepository;
 
     private static final int MIN_HOURS_BEFORE_EVENT = 2;
-    private static final String APP_NAME = "ewm-service";
+    private static final String APP_NAME = "main-service";
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     /**
