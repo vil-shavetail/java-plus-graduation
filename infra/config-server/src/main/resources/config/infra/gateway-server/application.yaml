@@ -16,6 +16,17 @@ spring:
           uri: lb://stats-server
           predicates:
             - Path=/hit/**, /stats/**
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,mappings,gateway
+      base-path: /actuator
+  endpoint:
+    gateway:
+      enabled: true
+      routes:
+        enabled: true
 
 server:
   port: 8080
