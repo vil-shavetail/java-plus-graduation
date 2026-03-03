@@ -1,4 +1,10 @@
+server:
+  port: 0
+
 spring:
+  application:
+    name: main-service
+
   sql:
     init:
       mode: always

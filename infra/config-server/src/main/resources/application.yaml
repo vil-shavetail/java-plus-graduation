@@ -8,8 +8,8 @@ spring:
       server:
         native:
           searchLocations:
-            - classpath:config/core/{application}
-            - classpath:config/stats/{application}
-            - classpath:config/infra/{application}
+            - classpath:config/core/{application}/
+            - classpath:config/stats/{application}/
+            - classpath:config/infra/{application}/
 server:
   port: 8888

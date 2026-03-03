@@ -1,4 +1,10 @@
+server:
+  port: 0
+
 spring:
+  application:
+    name: stats-server
+
   sql:
     init:
       mode: always
