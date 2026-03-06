@@ -4,17 +4,17 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.practicum.UserClient;
 import ru.practicum.dto.request.ParticipationRequestDto;
+import ru.practicum.dto.user.UserDto;
 import ru.practicum.enumeration.ParticipationStatus;
 import ru.practicum.exception.ConflictException;
 import ru.practicum.exception.NotFoundException;
 import ru.practicum.mapper.ParticipationRequestMapper;
 import ru.practicum.model.Event;
 import ru.practicum.model.ParticipationRequest;
-import ru.practicum.model.User;
 import ru.practicum.repository.EventRepository;
 import ru.practicum.repository.ParticipationRequestRepository;
-import ru.practicum.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -26,13 +26,13 @@ import java.util.List;
 public class ParticipationRequestService {
 
     private final ParticipationRequestRepository requestRepository;
-    private final UserRepository userRepository;
+    private final UserClient userClient;
     private final EventRepository eventRepository;
 
     @Transactional
     public ParticipationRequestDto addRequest(Long userId, Long eventId) {
         log.info("Creating a request for event: {} by user: {}", eventId, userId);
-        User requester = userRepository.findById(userId)
+        UserDto requester = userClient.findById(userId)
                 .orElseThrow(() -> {
                     log.warn("User with ID {} not found", userId);
                     return new NotFoundException("User with id: " + userId + "was not found");
@@ -42,7 +42,7 @@ public class ParticipationRequestService {
                     log.warn("Event with ID {} not found", eventId);
                     return new NotFoundException("Event with id: " + eventId + "was not found");
                 });
-        if (event.getInitiator().getId().equals(userId)) {
+        if (event.getInitiatorId().equals(userId)) {
             throw new ConflictException("User cannot request participation in their own event");
         }
         if (event.getPublishedOn() == null || event.getPublishedOn().toString().trim().isEmpty()) {
@@ -57,7 +57,7 @@ public class ParticipationRequestService {
             throw new ConflictException("Duplicate participation request");
         }
         ParticipationRequest request = new ParticipationRequest();
-        request.setRequester(requester);
+        request.setRequesterId(requester.getId());
         request.setEvent(event);
         if (Boolean.FALSE.equals(event.getRequestModeration()) || participantLimit == 0) {
             request.setStatus(ParticipationStatus.CONFIRMED);
@@ -80,12 +80,12 @@ public class ParticipationRequestService {
         log.info("Creating a cancellation request: {} for event by user: {}", requestId, userId);
         ParticipationRequest request = requestRepository.findById(requestId)
                 .orElseThrow(() -> new RuntimeException("Request with id: " + requestId + " was not found"));
-        User requester = userRepository.findById(userId)
+        UserDto requester = userClient.findById(userId)
                 .orElseThrow(() -> {
                     log.warn("User with ID {} not found", userId);
                     return new NotFoundException("User with id: " + userId + "was not found");
                 });
-        if (!request.getRequester().getId().equals(requester.getId())) {
+        if (!request.getRequesterId().equals(requester.getId())) {
             throw new NotFoundException("Request with id=" + requestId + " does not belong to user " + userId);
         }
         request.setStatus(ParticipationStatus.CANCELED);
@@ -96,7 +96,7 @@ public class ParticipationRequestService {
 
     public List<ParticipationRequestDto> getUserRequests(Long userId) {
         log.info("Searching event requests for the user with id: {}", userId);
-        User existingUser = userRepository.findById(userId)
+        UserDto existingUser = userClient.findById(userId)
                 .orElseThrow(() -> {
                     log.warn("User with ID {} not found", userId);
                     return new NotFoundException("User with id: " + userId + "was not found");

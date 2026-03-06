@@ -1,10 +1,3 @@
--- Таблица пользователей
-CREATE TABLE IF NOT EXISTS users (
-    id BIGSERIAL PRIMARY KEY,
-    name VARCHAR(250) NOT NULL,
-    email VARCHAR(254) NOT NULL UNIQUE
-);
-
 -- Таблица категорий
 CREATE TABLE IF NOT EXISTS categories (
     id BIGSERIAL PRIMARY KEY,
@@ -19,7 +12,7 @@ CREATE TABLE IF NOT EXISTS events (
     created_on TIMESTAMP NOT NULL,
     description VARCHAR(7000) NOT NULL,
     event_date TIMESTAMP NOT NULL,
-    initiator_id BIGINT NOT NULL REFERENCES users(id),
+    initiator_id BIGINT NOT NULL,
     lat FLOAT NOT NULL,
     lon FLOAT NOT NULL,
     paid BOOLEAN NOT NULL,
@@ -36,7 +29,7 @@ CREATE TABLE IF NOT EXISTS participation_requests (
     id BIGSERIAL PRIMARY KEY,
     created TIMESTAMP NOT NULL,
     event_id BIGINT NOT NULL REFERENCES events(id),
-    requester_id BIGINT NOT NULL REFERENCES users(id),
+    requester_id BIGINT NOT NULL,
     status VARCHAR(20) NOT NULL,
     CONSTRAINT uq_participation_request UNIQUE (event_id, requester_id)
 );
@@ -62,7 +55,6 @@ CREATE TABLE IF NOT EXISTS comments (
     date TIMESTAMP NOT NULL,
     author_id BIGINT NOT NULL,
     event_id BIGINT NOT NULL,
-    CONSTRAINT fk_comment_author FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE CASCADE,
     CONSTRAINT fk_comment_event FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
     );
 

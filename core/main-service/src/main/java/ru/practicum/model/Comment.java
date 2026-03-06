@@ -23,9 +23,7 @@ public class Comment {
     @Column(name = "date", nullable = false)
     private LocalDateTime createdOn;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "author_id", nullable = false)
-    private User author;
+    private Long authorId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "event_id", nullable = false)

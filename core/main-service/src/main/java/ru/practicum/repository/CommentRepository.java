@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface CommentRepository extends JpaRepository<Comment, Long> {
 
-    @Query("SELECT c FROM Comment c JOIN FETCH c.author WHERE c.event.id = :eventId")
+    @Query("SELECT c FROM Comment c JOIN FETCH c.authorId WHERE c.event.id = :eventId")
     List<Comment> findByEventIdWithAuthor(@Param("eventId") Long eventId);
 
 }

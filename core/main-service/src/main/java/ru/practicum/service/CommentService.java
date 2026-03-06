@@ -5,18 +5,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.UserClient;
 import ru.practicum.dto.comment.CommentDto;
 import ru.practicum.dto.comment.NewCommentDto;
+import ru.practicum.dto.user.UserDto;
 import ru.practicum.exception.ConflictException;
 import ru.practicum.exception.NotFoundException;
 import ru.practicum.mapper.CommentMapper;
 import ru.practicum.model.Comment;
 import ru.practicum.model.Event;
-import ru.practicum.model.User;
 import ru.practicum.repository.CommentRepository;
 import ru.practicum.repository.EventRepository;
 import ru.practicum.repository.ParticipationRequestRepository;
-import ru.practicum.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -32,7 +32,7 @@ import static ru.practicum.enumeration.ParticipationStatus.CONFIRMED;
 @Transactional
 public class CommentService {
     private final CommentRepository commRep;
-    private final UserRepository userRep;
+    private final UserClient userClient;
     private final EventRepository eventRep;
     private final ParticipationRequestRepository partReqRep;
     private final CommentMapper mapper;
@@ -65,14 +65,14 @@ public class CommentService {
             }
         }
 
-        User user = userRep.findById(userId).orElseThrow(
+        UserDto user = userClient.findById(userId).orElseThrow(
                 () -> new NotFoundException("Пользователь с ID: " + userId + " не найден."));
 
         try {
             Comment comment = mapper.toEntity(newCommentDto);
             comment.setCreatedOn(LocalDateTime.now());
             comment.setEvent(event);
-            comment.setAuthor(user);
+            comment.setAuthorId(user.getId());
 
             Comment savedComment = commRep.save(comment);
             CommentDto commentDto = mapper.toDto(savedComment);
@@ -114,12 +114,12 @@ public class CommentService {
         Comment comment = commRep.findById(commentId).orElseThrow(
                 () -> new NotFoundException("Комментарий с ID: " + commentId + " не найден."));
 
-        if (!userRep.existsById(userId)) throw new ConflictException("Пользователя с ID: "
+        if (!userClient.existsById(userId)) throw new ConflictException("Пользователя с ID: "
                 + userId + " не существует.");
 
         // Проверка прав пользователя
         // ID уже есть в прокси, поэтому обращения к БД не произойдет
-        if (!comment.getAuthor().getId().equals(userId)) {
+        if (!comment.getAuthorId().equals(userId)) {
             throw new ConflictException("Вы не являетесь автором комментария с ID: " + commentId
                     + " и потому не можете удалить его.");
         }

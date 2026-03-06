@@ -11,10 +11,12 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.DTO.RequestStatisticDto;
 import ru.practicum.DTO.ResponseStatisticDto;
 import ru.practicum.StatsClient;
+import ru.practicum.UserClient;
 import ru.practicum.dto.event.*;
 import ru.practicum.dto.request.EventRequestStatusUpdateRequest;
 import ru.practicum.dto.request.EventRequestStatusUpdateResult;
 import ru.practicum.dto.request.ParticipationRequestDto;
+import ru.practicum.dto.user.UserDto;
 import ru.practicum.enumeration.EventSort;
 import ru.practicum.enumeration.EventState;
 import ru.practicum.enumeration.ParticipationStatus;
@@ -28,7 +30,6 @@ import ru.practicum.model.*;
 import ru.practicum.repository.CategoryRepository;
 import ru.practicum.repository.EventRepository;
 import ru.practicum.repository.ParticipationRequestRepository;
-import ru.practicum.repository.UserRepository;
 import ru.practicum.util.UriUtils;
 
 import java.time.LocalDateTime;
@@ -47,7 +48,7 @@ import java.util.stream.StreamSupport;
 public class EventService {
 
     private final EventRepository eventRepository;
-    private final UserRepository userRepository;
+    private final UserClient userClient;
     private final CategoryRepository categoryRepository;
     private final EventMapper eventMapper;
     private final StatsClient statsClient;
@@ -214,12 +215,12 @@ public class EventService {
      * Получить события текущего пользователя
      */
     public List<EventShortDto> getUserEvents(Long userId, Integer from, Integer size) {
-        if (!userRepository.existsById(userId)) {
+        if (!userClient.existsById(userId)) {
             throw new NotFoundException("Пользователь не найден с ID: " + userId);
         }
 
         BooleanBuilder predicate = new BooleanBuilder();
-        predicate.and(QEvent.event.initiator.id.eq(userId));
+        predicate.and(QEvent.event.initiatorId.eq(userId));
 
         Pageable pageable = PageRequest.of(from / size, size);
         Iterable<Event> events = eventRepository.findAll(predicate, pageable);
@@ -237,7 +238,7 @@ public class EventService {
      */
     @Transactional
     public EventFullDto addEvent(Long userId, NewEventDto newEventDto) {
-        User user = userRepository.findById(userId)
+        UserDto user = userClient.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден с ID: " + userId));
 
         Category category = categoryRepository.findById(newEventDto.getCategory())
@@ -250,7 +251,7 @@ public class EventService {
         }
 
         Event event = eventMapper.toEntity(newEventDto);
-        event.setInitiator(user);
+        event.setInitiatorId(user.getId());
         event.setCategory(category);
         event.setCreatedOn(LocalDateTime.now());
         event.setState(EventState.PENDING);
@@ -266,14 +267,14 @@ public class EventService {
      * Получить событие пользователя по ID
      */
     public EventFullDto getUserEventById(Long userId, Long eventId) {
-        if (!userRepository.existsById(userId)) {
+        if (!userClient.existsById(userId)) {
             throw new NotFoundException("Пользователь не найден с ID: " + userId);
         }
 
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Событие не найдено с ID: " + eventId));
 
-        if (!event.getInitiator().getId().equals(userId)) {
+        if (!event.getInitiatorId().equals(userId)) {
             throw new NotFoundException("Событие не принадлежит пользователю");
         }
 
@@ -285,14 +286,14 @@ public class EventService {
      */
     @Transactional
     public EventFullDto updateUserEvent(Long userId, Long eventId, UpdateEventUserRequest updateRequest) {
-        if (!userRepository.existsById(userId)) {
+        if (!userClient.existsById(userId)) {
             throw new NotFoundException("Пользователь не найден с ID: " + userId);
         }
 
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Событие не найдено с ID: " + eventId));
 
-        if (!event.getInitiator().getId().equals(userId)) {
+        if (!event.getInitiatorId().equals(userId)) {
             throw new ConflictException("Событие не принадлежит пользователю");
         }
 
@@ -349,7 +350,7 @@ public class EventService {
 
         // Фильтр по пользователям
         if (users != null && !users.isEmpty()) {
-            predicate.and(QEvent.event.initiator.id.in(users));
+            predicate.and(QEvent.event.initiatorId.in(users));
         }
 
         // Фильтр по состояниям
@@ -456,7 +457,7 @@ public class EventService {
         }
 
         // 3. Проверяем, что пользователь — инициатор события
-        if (!userId.equals(event.getInitiator().getId())) {
+        if (!userId.equals(event.getInitiatorId())) {
             throw new ConflictException("User is not event initiator");
         }
 
@@ -562,12 +563,12 @@ public class EventService {
                     log.warn("Event with ID {} not found", eventId);
                     return new NotFoundException("Event with id: " + eventId + "was not found");
                 });
-        User eventOwner = userRepository.findById(userId)
+        UserDto eventOwner = userClient.findById(userId)
                 .orElseThrow(() -> {
                     log.warn("User with ID {} not found", userId);
                     return new NotFoundException("User with id: " + userId + "was not found");
                 });
-        if (!event.getInitiator().getId().equals(eventOwner.getId())) {
+        if (!event.getInitiatorId().equals(eventOwner.getId())) {
             throw new ConflictException("User with id = " + userId + " is not event initiator");
         }
         List<ParticipationRequest> requests = requestRepository.findAllByEventId(eventId);

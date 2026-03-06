@@ -36,11 +36,9 @@ public class ParticipationRequest {
     private Event event;
 
     /**
-     * Пользователь, отправивший заявку
+     * Id пользователя, отправившего заявку
      */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "requester_id", nullable = false)
-    private User requester;
+    private Long requesterId;
 
     /**
      * Статус заявки

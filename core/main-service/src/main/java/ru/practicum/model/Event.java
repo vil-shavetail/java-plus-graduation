@@ -54,11 +54,9 @@ public class Event {
     private LocalDateTime eventDate;
 
     /**
-     * Инициатор события (пользователь)
+     * Инициатор события (Id пользователя)
      */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "initiator_id", nullable = false)
-    private User initiator;
+    private Long initiatorId;
 
     /**
      * Локация события (координаты)

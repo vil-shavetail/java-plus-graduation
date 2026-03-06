@@ -9,9 +9,12 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>main-service</artifactId>
+    <artifactId>user-service</artifactId>
 
     <properties>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <querydsl.version>5.1.0</querydsl.version>
     </properties>
 
@@ -94,11 +97,6 @@
             <artifactId>stats-dto</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
-        <dependency>
-            <groupId>ru.practicum</groupId>
-            <artifactId>rest-service-gateway</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-        </dependency>
     </dependencies>
 
     <build>
@@ -164,4 +162,5 @@
             </plugin>
         </plugins>
     </build>
+
 </project>

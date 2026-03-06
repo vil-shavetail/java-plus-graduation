@@ -13,8 +13,9 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>main-dto</module>
+        <module>interaction-api</module>
         <module>main-service</module>
+        <module>user-service</module>
     </modules>
 
     <properties>
