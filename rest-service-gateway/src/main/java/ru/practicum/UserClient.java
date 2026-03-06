@@ -7,7 +7,7 @@ import ru.practicum.dto.user.UserDto;
 
 import java.util.Optional;
 
-@FeignClient(name = "user-service", path = "/users")
+@FeignClient(name = "user-service", path = "/client/users")
 public interface UserClient {
     @GetMapping("/{userId}")
     Optional<UserDto> findById(@PathVariable Long userId);

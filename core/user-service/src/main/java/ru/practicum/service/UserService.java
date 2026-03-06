@@ -1,5 +1,6 @@
 package ru.practicum.service;
 
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -16,6 +17,7 @@ import ru.practicum.model.User;
 import ru.practicum.repository.UserRepository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -92,5 +94,14 @@ public class UserService {
 
         userRepository.deleteById(userId);
         log.info("Удален пользователь с ID: {}", userId);
+    }
+
+    public Optional<UserDto> findById(@Positive Long userId) {
+        return userRepository.findById(userId)
+                .map(userMapper::toDto);
+    }
+
+    public boolean existsById(@Positive Long userId) {
+        return userRepository.existsById(userId);
     }
 }
