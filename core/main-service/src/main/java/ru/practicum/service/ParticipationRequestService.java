@@ -53,11 +53,11 @@ public class ParticipationRequestService {
         if (participantLimit != 0 && confirmedRequests >= participantLimit) {
             throw new ConflictException("Participation request limit reached for event id=" + eventId);
         }
-        if (requestRepository.findByRequesterIdAndEventId(userId, eventId).isPresent()) {
+        if (requestRepository.findByRequesterAndEventId(userId, eventId).isPresent()) {
             throw new ConflictException("Duplicate participation request");
         }
         ParticipationRequest request = new ParticipationRequest();
-        request.setRequesterId(requester.getId());
+        request.setRequester(requester.getId());
         request.setEvent(event);
         if (Boolean.FALSE.equals(event.getRequestModeration()) || participantLimit == 0) {
             request.setStatus(ParticipationStatus.CONFIRMED);
@@ -85,7 +85,7 @@ public class ParticipationRequestService {
                     log.warn("User with ID {} not found", userId);
                     return new NotFoundException("User with id: " + userId + "was not found");
                 });
-        if (!request.getRequesterId().equals(requester.getId())) {
+        if (!request.getRequester().equals(requester.getId())) {
             throw new NotFoundException("Request with id=" + requestId + " does not belong to user " + userId);
         }
         request.setStatus(ParticipationStatus.CANCELED);
@@ -101,7 +101,7 @@ public class ParticipationRequestService {
                     log.warn("User with ID {} not found", userId);
                     return new NotFoundException("User with id: " + userId + "was not found");
                 });
-        List<ParticipationRequestDto> requests = requestRepository.findAllByRequesterId(existingUser.getId())
+        List<ParticipationRequestDto> requests = requestRepository.findAllByRequester(existingUser.getId())
                 .stream()
                 .map(ParticipationRequestMapper.INSTANCE::toDto)
                 .toList();

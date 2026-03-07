@@ -38,7 +38,8 @@ public class ParticipationRequest {
     /**
      * Id пользователя, отправившего заявку
      */
-    private Long requesterId;
+    @Column(name = "requester_id", nullable = false)
+    private Long requester;
 
     /**
      * Статус заявки
