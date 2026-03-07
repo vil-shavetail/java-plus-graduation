@@ -16,6 +16,7 @@
         <module>interaction-api</module>
         <module>main-service</module>
         <module>user-service</module>
+        <module>request-service</module>
     </modules>
 
     <properties>

@@ -47,7 +47,24 @@ services:
       interval: 5s
       retries: 10
 
+  request-db:
+    image: postgres:16.1
+    ports:
+      - "5435:5432"
+    environment:
+      POSTGRES_DB: request-db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12345
+    volumes:
+      - request-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER
+      timeout: 5s
+      interval: 5s
+      retries: 10
+
 volumes:
   ewm-db-data:
   stats-db-data:
   user-db-data:
+  request-db-data:

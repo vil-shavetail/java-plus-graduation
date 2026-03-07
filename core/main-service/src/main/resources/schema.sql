@@ -24,16 +24,6 @@ CREATE TABLE IF NOT EXISTS events (
     confirmed_requests INTEGER NOT NULL DEFAULT 0
 );
 
--- Таблица заявок на участие
-CREATE TABLE IF NOT EXISTS participation_requests (
-    id BIGSERIAL PRIMARY KEY,
-    created TIMESTAMP NOT NULL,
-    event_id BIGINT NOT NULL REFERENCES events(id),
-    requester_id BIGINT NOT NULL,
-    status VARCHAR(20) NOT NULL,
-    CONSTRAINT uq_participation_request UNIQUE (event_id, requester_id)
-);
-
 -- Таблица подборок
 CREATE TABLE IF NOT EXISTS compilations (
     id BIGSERIAL PRIMARY KEY,
@@ -63,9 +53,6 @@ CREATE INDEX IF NOT EXISTS idx_events_category_id ON events(category_id);
 CREATE INDEX IF NOT EXISTS idx_events_initiator_id ON events(initiator_id);
 CREATE INDEX IF NOT EXISTS idx_events_state ON events(state);
 CREATE INDEX IF NOT EXISTS idx_events_event_date ON events(event_date);
-CREATE INDEX IF NOT EXISTS idx_participation_requests_event_id ON participation_requests(event_id);
-CREATE INDEX IF NOT EXISTS idx_participation_requests_requester_id ON participation_requests(requester_id);
-CREATE INDEX IF NOT EXISTS idx_participation_requests_status ON participation_requests(status);
 CREATE INDEX IF NOT EXISTS idx_comments_event_id ON comments(event_id);
 CREATE INDEX IF NOT EXISTS idx_comments_author_id ON comments(author_id);
 CREATE INDEX IF NOT EXISTS idx_comments_date ON comments(date);

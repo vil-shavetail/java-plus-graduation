@@ -10,6 +10,11 @@ spring:
         locator:
            enabled: true
       routes:
+        - id: request-service
+          uri: lb://request-service
+          predicates:
+            - Path=/users/{userId}/requests/**, /users/{userId}/events/{eventId}/requests, /client/request/**
+
         - id: user-service
           uri: lb://user-service
           predicates:
