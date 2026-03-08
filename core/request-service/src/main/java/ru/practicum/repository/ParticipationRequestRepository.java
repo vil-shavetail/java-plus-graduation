@@ -33,7 +33,7 @@ public interface ParticipationRequestRepository extends JpaRepository<Participat
     @Transactional
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("UPDATE ParticipationRequest r SET r.status = :status " +
-            "WHERE r.event.id = :eventId AND r.id IN :requestIds AND r.status = 'PENDING'")
+            "WHERE r.eventId = :eventId AND r.id IN :requestIds AND r.status = 'PENDING'")
     void bulkUpdateStatus(@Param("eventId") Long eventId,
                           @Param("requestIds") List<Long> requestIds,
                           @Param("status") ParticipationStatus status);
@@ -41,7 +41,7 @@ public interface ParticipationRequestRepository extends JpaRepository<Participat
     @Transactional
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("UPDATE ParticipationRequest r SET r.status = :status " +
-            "WHERE r.event.id = :eventId AND r.status = 'PENDING'")
+            "WHERE r.eventId = :eventId AND r.status = 'PENDING'")
     void rejectAllPendingRequests(@Param("eventId") Long eventId,
                                   @Param("status") ParticipationStatus status);
 

@@ -9,7 +9,7 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>main-service</artifactId>
+    <artifactId>event-service</artifactId>
 
     <properties>
         <querydsl.version>5.1.0</querydsl.version>

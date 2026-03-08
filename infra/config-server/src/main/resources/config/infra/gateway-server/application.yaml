@@ -13,15 +13,15 @@ spring:
         - id: request-service
           uri: lb://request-service
           predicates:
-            - Path=/users/{userId}/requests/**, /users/{userId}/events/{eventId}/requests, /client/request/**
+            - Path=/client/requests/**
 
         - id: user-service
           uri: lb://user-service
           predicates:
             - Path=/admin/users/**, /client/users/**
 
-        - id: main-service
-          uri: lb://main-service
+        - id: event-service
+          uri: lb://event-service
           predicates:
             - Path=/categories/**, /admin/**, /client/**, /users/**, /events/**, /compilations/**
 

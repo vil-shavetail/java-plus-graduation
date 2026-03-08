@@ -10,7 +10,7 @@ import ru.practicum.model.ParticipationRequest;
 public interface ParticipationRequestMapper {
     ParticipationRequestMapper INSTANCE = Mappers.getMapper(ParticipationRequestMapper.class);
 
-    @Mapping(target = "event", source = "event.id")
+    @Mapping(target = "event", source = "eventId")
     @Mapping(target = "requester", source = "requester")
     @Mapping(target = "created", source = "created", dateFormat = "yyyy-MM-dd HH:mm:ss")
     ParticipationRequestDto toDto(ParticipationRequest entity);

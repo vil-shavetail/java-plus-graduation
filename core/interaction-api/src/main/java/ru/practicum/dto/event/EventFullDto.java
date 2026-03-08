@@ -43,7 +43,7 @@ public class EventFullDto {
     /**
      * Количество одобренных заявок на участие в данном событии
      */
-    private Long confirmedRequests;
+    private Integer confirmedRequests;
 
     /**
      * Дата и время создания события

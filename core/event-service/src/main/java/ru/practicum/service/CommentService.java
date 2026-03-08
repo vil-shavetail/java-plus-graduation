@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.RequestClient;
 import ru.practicum.UserClient;
 import ru.practicum.dto.comment.CommentDto;
 import ru.practicum.dto.comment.NewCommentDto;
@@ -16,7 +17,6 @@ import ru.practicum.model.Comment;
 import ru.practicum.model.Event;
 import ru.practicum.repository.CommentRepository;
 import ru.practicum.repository.EventRepository;
-import ru.practicum.repository.ParticipationRequestRepository;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -34,7 +34,7 @@ public class CommentService {
     private final CommentRepository commRep;
     private final UserClient userClient;
     private final EventRepository eventRep;
-    private final ParticipationRequestRepository partReqRep;
+    private final RequestClient requestClient;
     private final CommentMapper mapper;
 
     // Создание комментария для события
@@ -58,7 +58,7 @@ public class CommentService {
          */
         if (event.getRequestModeration()) {
             // Поиск заявки на участие в событии
-            if (!partReqRep.existsByRequesterAndEventIdAndStatus(userId, eventId, CONFIRMED)) {
+            if (!requestClient.existsByRequesterAndEventIdAndStatus(userId, eventId, CONFIRMED)) {
                 throw new ConflictException("Пользователь с ID: "
                         + userId + " не найден среди участников события с ID: "
                         + eventId);

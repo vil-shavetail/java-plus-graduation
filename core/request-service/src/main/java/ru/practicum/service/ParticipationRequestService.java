@@ -4,20 +4,21 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.practicum.EventClient;
 import ru.practicum.UserClient;
+import ru.practicum.dto.event.EventFullDto;
 import ru.practicum.dto.request.ParticipationRequestDto;
 import ru.practicum.dto.user.UserDto;
 import ru.practicum.enumeration.ParticipationStatus;
 import ru.practicum.exception.ConflictException;
 import ru.practicum.exception.NotFoundException;
 import ru.practicum.mapper.ParticipationRequestMapper;
-import ru.practicum.model.Event;
 import ru.practicum.model.ParticipationRequest;
-import ru.practicum.repository.EventRepository;
 import ru.practicum.repository.ParticipationRequestRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -27,7 +28,7 @@ public class ParticipationRequestService {
 
     private final ParticipationRequestRepository requestRepository;
     private final UserClient userClient;
-    private final EventRepository eventRepository;
+    private final EventClient eventClient;
 
     @Transactional
     public ParticipationRequestDto addRequest(Long userId, Long eventId) {
@@ -37,12 +38,12 @@ public class ParticipationRequestService {
                     log.warn("User with ID {} not found", userId);
                     return new NotFoundException("User with id: " + userId + "was not found");
                 });
-        Event event = eventRepository.findById(eventId)
+        EventFullDto event = eventClient.findById(eventId)
                 .orElseThrow(() -> {
                     log.warn("Event with ID {} not found", eventId);
                     return new NotFoundException("Event with id: " + eventId + "was not found");
                 });
-        if (event.getInitiatorId().equals(userId)) {
+        if (event.getInitiator().getId().equals(userId)) {
             throw new ConflictException("User cannot request participation in their own event");
         }
         if (event.getPublishedOn() == null || event.getPublishedOn().toString().trim().isEmpty()) {
@@ -58,7 +59,7 @@ public class ParticipationRequestService {
         }
         ParticipationRequest request = new ParticipationRequest();
         request.setRequester(requester.getId());
-        request.setEvent(event);
+        request.setEventId(event.getId());
         if (Boolean.FALSE.equals(event.getRequestModeration()) || participantLimit == 0) {
             request.setStatus(ParticipationStatus.CONFIRMED);
         } else {
@@ -68,7 +69,7 @@ public class ParticipationRequestService {
         ParticipationRequest savedRequest = requestRepository.save(request);
         if (savedRequest.getStatus() == ParticipationStatus.CONFIRMED) {
             event.setConfirmedRequests(confirmedRequests + 1);
-            eventRepository.save(event);
+            eventClient.save(event.getId(), event);
             log.info("Updated confirmedRequests for event {} to {}", eventId, event.getConfirmedRequests());
         }
         log.info("The request was successfully created: {}", savedRequest);
@@ -107,5 +108,44 @@ public class ParticipationRequestService {
                 .toList();
         log.info("Event requests was found: {}", requests.size());
         return requests;
+    }
+
+    public boolean existsByRequesterAndEventIdAndStatus(Long requesterId, Long eventId, ParticipationStatus status) {
+        return requestRepository.existsByRequesterAndEventIdAndStatus(requesterId, eventId, status);
+    }
+
+    public long countByEventIdAndStatus(Long eventId, ParticipationStatus status) {
+        return requestRepository.countByEventIdAndStatus(eventId, status);
+    }
+
+    @Transactional
+    public void bulkUpdateStatus(Long eventId, List<Long> requestIds, ParticipationStatus newStatus) {
+        if (requestIds.isEmpty()) {
+            return;
+        }
+        requestRepository.bulkUpdateStatus(eventId, requestIds, newStatus);
+    }
+
+    public List<ParticipationRequestDto> findAllByEventId(Long eventId) {
+        return requestRepository.findAllByEventId(eventId).stream()
+                .map(ParticipationRequestMapper.INSTANCE::toDto)
+                .collect(Collectors.toList());
+    }
+
+    public List<ParticipationRequestDto> findAllByEventIdAndStatus(Long eventId, ParticipationStatus status) {
+        return requestRepository.findAllByEventIdAndStatus(eventId, status).stream()
+                .map(ParticipationRequestMapper.INSTANCE::toDto)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void rejectAllPendingRequests(Long eventId, ParticipationStatus rejectStatus) {
+        requestRepository.rejectAllPendingRequests(eventId, rejectStatus);
+    }
+
+    public List<ParticipationRequestDto> findAllByEventIdAndIdIn(Long eventId, List<Long> requestIds) {
+        return requestRepository.findAllByEventIdAndIdIn(eventId, requestIds).stream()
+                .map(ParticipationRequestMapper.INSTANCE::toDto)
+                .collect(Collectors.toList());
     }
 }

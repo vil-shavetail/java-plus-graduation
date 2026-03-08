@@ -3,14 +3,14 @@ server:
 
 spring:
   application:
-    name: main-service
+    name: event-service
 
   sql:
     init:
       mode: always
   datasource:
     driverClassName: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5433/ewm-db
+    url: jdbc:postgresql://localhost:5433/event-db
     username: postgres
     password: '12345'
   jpa:

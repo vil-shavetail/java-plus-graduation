@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.DTO.RequestStatisticDto;
 import ru.practicum.DTO.ResponseStatisticDto;
+import ru.practicum.RequestClient;
 import ru.practicum.StatsClient;
 import ru.practicum.UserClient;
 import ru.practicum.dto.event.*;
@@ -25,11 +26,9 @@ import ru.practicum.exception.BadRequestException;
 import ru.practicum.exception.ConflictException;
 import ru.practicum.exception.NotFoundException;
 import ru.practicum.mapper.EventMapper;
-import ru.practicum.mapper.ParticipationRequestMapper;
 import ru.practicum.model.*;
 import ru.practicum.repository.CategoryRepository;
 import ru.practicum.repository.EventRepository;
-import ru.practicum.repository.ParticipationRequestRepository;
 import ru.practicum.util.UriUtils;
 
 import java.time.LocalDateTime;
@@ -52,7 +51,7 @@ public class EventService {
     private final CategoryRepository categoryRepository;
     private final EventMapper eventMapper;
     private final StatsClient statsClient;
-    private final ParticipationRequestRepository requestRepository;
+    private final RequestClient requestClient;
 
     private static final int MIN_HOURS_BEFORE_EVENT = 2;
     private static final String APP_NAME = "main-service";
@@ -462,7 +461,7 @@ public class EventService {
         }
 
         // 4. Получаем заявки для обновления
-        List<ParticipationRequest> requests = requestRepository.findAllByEventIdAndIdIn(
+        List<ParticipationRequestDto> requests = requestClient.findAllByEventIdAndIdIn(
                 eventId, requestIds);
 
         if (requests.isEmpty()) {
@@ -470,7 +469,7 @@ public class EventService {
         }
 
         // 5. Проверяем, что все заявки в статусе PENDING
-        for (ParticipationRequest req : requests) {
+        for (ParticipationRequestDto req : requests) {
             if (req.getStatus() != ParticipationStatus.PENDING) {
                 throw new ConflictException(
                         "Request " + req.getId() + " is not in PENDING status");
@@ -478,7 +477,7 @@ public class EventService {
         }
 
         // 6. Проверяем лимит подтверждённых заявок
-        long confirmedCount = requestRepository.countByEventIdAndStatus(
+        long confirmedCount = requestClient.countByEventIdAndStatus(
                 eventId, ParticipationStatus.CONFIRMED);
 
         if (confirmedCount >= maxLimit) {
@@ -486,7 +485,7 @@ public class EventService {
         }
 
         // 7. Обновляем статус выбранных заявок
-        List<ParticipationRequest> rejectedDueToLimit = new ArrayList<>();
+        List<ParticipationRequestDto> rejectedDueToLimit = new ArrayList<>();
         long currentConfirmed = confirmedCount;
 
         if (request.getStatus() == ParticipationStatus.CONFIRMED) {
@@ -501,15 +500,15 @@ public class EventService {
                     .limit(canConfirm)
                     .collect(Collectors.toList());
 
-            requestRepository.bulkUpdateStatus(eventId, requestIdsPart, request.getStatus());
+            requestClient.bulkUpdateStatus(eventId, requestIdsPart, request.getStatus());
 
 
             // Отклоняем оставшиеся PENDING заявки
-            List<ParticipationRequest> allPendingRequests = requestRepository
+            List<ParticipationRequestDto> allPendingRequests = requestClient
                     .findAllByEventIdAndStatus(eventId, ParticipationStatus.PENDING);
 
             if (!allPendingRequests.isEmpty()) {
-                requestRepository.rejectAllPendingRequests(eventId, ParticipationStatus.REJECTED);
+                requestClient.rejectAllPendingRequests(eventId, ParticipationStatus.REJECTED);
                 rejectedDueToLimit.addAll(allPendingRequests);
             }
 
@@ -519,7 +518,7 @@ public class EventService {
 
 
         } else {
-            requestRepository.bulkUpdateStatus(eventId, requestIds, request.getStatus());
+            requestClient.bulkUpdateStatus(eventId, requestIds, request.getStatus());
 
             // УВЕЛИЧИВАЕМ confirmedRequests на число подтверждённых заявок
             event.setConfirmedRequests((int) (confirmedCount + requestIds.size()));
@@ -527,35 +526,31 @@ public class EventService {
         }
 
         // 9. Формируем ответ
-        List<ParticipationRequest> updatedRequests = requestRepository.findAllByEventIdAndIdIn(
+        List<ParticipationRequestDto> updatedRequests = requestClient.findAllByEventIdAndIdIn(
                 eventId, requestIds);
         Set<Long> alreadyRejectedIds = updatedRequests.stream()
                 .filter(r -> r.getStatus() == ParticipationStatus.REJECTED)
-                .map(ParticipationRequest::getId)
+                .map(ParticipationRequestDto::getId)
                 .collect(Collectors.toSet());
 
 
         List<ParticipationRequestDto> confirmed = updatedRequests.stream()
                 .filter(r -> r.getStatus() == ParticipationStatus.CONFIRMED)
-                .map(ParticipationRequestMapper.INSTANCE::toDto)
-                .toList();
+                .collect(Collectors.toList());
 
         List<ParticipationRequestDto> rejected = new ArrayList<>(updatedRequests.stream()
                 .filter(r -> r.getStatus() == ParticipationStatus.REJECTED)
-                .map(ParticipationRequestMapper.INSTANCE::toDto)
-                .toList());
+                .collect(Collectors.toList()));
 
         rejected.addAll(rejectedDueToLimit.stream()
                 .filter(r -> !alreadyRejectedIds.contains(r.getId()))
-                .map(ParticipationRequestMapper.INSTANCE::toDto)
-                .toList());
+                .collect(Collectors.toList()));
 
         return EventRequestStatusUpdateResult.builder()
                 .confirmedRequests(confirmed)
                 .rejectedRequests(rejected)
                 .build();
     }
-
 
     public List<ParticipationRequestDto> getEventParticipantRequests(Long userId, Long eventId) {
         Event event = eventRepository.findById(eventId)
@@ -571,8 +566,23 @@ public class EventService {
         if (!event.getInitiatorId().equals(eventOwner.getId())) {
             throw new ConflictException("User with id = " + userId + " is not event initiator");
         }
-        List<ParticipationRequest> requests = requestRepository.findAllByEventId(eventId);
-        return requests.stream()
-                .map(ParticipationRequestMapper.INSTANCE::toDto).toList();
+        return requestClient.findAllByEventId(eventId);
+    }
+
+    public Optional<EventFullDto> findById(Long eventId) {
+        return eventRepository.findById(eventId)
+                .map(eventMapper::toFullDto);
+    }
+
+    @Transactional
+    public EventFullDto save(Long eventId, EventFullDto eventDto) {
+        Event existingEvent = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException("Event with id=" + eventId));
+
+        // Обновляем поля из DTO с игнорированием null‑значений
+        eventMapper.updateFromFullDto(eventDto, existingEvent);
+        Event savedEvent = eventRepository.save(existingEvent);
+
+        return eventMapper.toFullDto(savedEvent);
     }
 }
