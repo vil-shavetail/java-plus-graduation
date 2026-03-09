@@ -43,7 +43,7 @@ public class ParticipationRequestService {
                     log.warn("Event with ID {} not found", eventId);
                     return new NotFoundException("Event with id: " + eventId + "was not found");
                 });
-        if (event.getInitiator().getId().equals(userId)) {
+        if (event.getInitiator().equals(userId)) {
             throw new ConflictException("User cannot request participation in their own event");
         }
         if (event.getPublishedOn() == null || event.getPublishedOn().toString().trim().isEmpty()) {

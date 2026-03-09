@@ -22,7 +22,7 @@ public interface EventMapper {
      * @return Event entity
      */
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "initiatorId", ignore = true)
+    @Mapping(target = "initiator", ignore = true)
     @Mapping(target = "category", ignore = true)
     @Mapping(target = "createdOn", ignore = true)
     @Mapping(target = "publishedOn", ignore = true)
@@ -61,7 +61,7 @@ public interface EventMapper {
      */
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "initiatorId", ignore = true)
+    @Mapping(target = "initiator", ignore = true)
     @Mapping(target = "category", ignore = true)
     @Mapping(target = "createdOn", ignore = true)
     @Mapping(target = "publishedOn", ignore = true)
@@ -78,7 +78,7 @@ public interface EventMapper {
      */
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "initiatorId", ignore = true)
+    @Mapping(target = "initiator", ignore = true)
     @Mapping(target = "category", ignore = true)
     @Mapping(target = "createdOn", ignore = true)
     @Mapping(target = "publishedOn", ignore = true)
@@ -88,7 +88,7 @@ public interface EventMapper {
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "initiatorId", ignore = true)
+    @Mapping(target = "initiator", ignore = true)
     @Mapping(target = "category", ignore = true)
     @Mapping(target = "createdOn", ignore = true)
     @Mapping(target = "publishedOn", ignore = true)

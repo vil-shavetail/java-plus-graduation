@@ -54,7 +54,7 @@ public class EventShortDto {
      * Инициатор события
      */
     @NotNull
-    private UserShortDto initiator;
+    private Long initiator;
 
     /**
      * Нужно ли оплачивать участие

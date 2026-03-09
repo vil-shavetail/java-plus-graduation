@@ -56,7 +56,8 @@ public class Event {
     /**
      * Инициатор события (Id пользователя)
      */
-    private Long initiatorId;
+    @Column(name = "initiator_id", nullable = false)
+    private Long initiator;
 
     /**
      * Локация события (координаты)

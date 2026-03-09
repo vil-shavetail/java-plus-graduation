@@ -219,7 +219,7 @@ public class EventService {
         }
 
         BooleanBuilder predicate = new BooleanBuilder();
-        predicate.and(QEvent.event.initiatorId.eq(userId));
+        predicate.and(QEvent.event.initiator.eq(userId));
 
         Pageable pageable = PageRequest.of(from / size, size);
         Iterable<Event> events = eventRepository.findAll(predicate, pageable);
@@ -250,7 +250,7 @@ public class EventService {
         }
 
         Event event = eventMapper.toEntity(newEventDto);
-        event.setInitiatorId(user.getId());
+        event.setInitiator(user.getId());
         event.setCategory(category);
         event.setCreatedOn(LocalDateTime.now());
         event.setState(EventState.PENDING);
@@ -273,7 +273,7 @@ public class EventService {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Событие не найдено с ID: " + eventId));
 
-        if (!event.getInitiatorId().equals(userId)) {
+        if (!event.getInitiator().equals(userId)) {
             throw new NotFoundException("Событие не принадлежит пользователю");
         }
 
@@ -292,7 +292,7 @@ public class EventService {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Событие не найдено с ID: " + eventId));
 
-        if (!event.getInitiatorId().equals(userId)) {
+        if (!event.getInitiator().equals(userId)) {
             throw new ConflictException("Событие не принадлежит пользователю");
         }
 
@@ -349,7 +349,7 @@ public class EventService {
 
         // Фильтр по пользователям
         if (users != null && !users.isEmpty()) {
-            predicate.and(QEvent.event.initiatorId.in(users));
+            predicate.and(QEvent.event.initiator.in(users));
         }
 
         // Фильтр по состояниям
@@ -456,7 +456,7 @@ public class EventService {
         }
 
         // 3. Проверяем, что пользователь — инициатор события
-        if (!userId.equals(event.getInitiatorId())) {
+        if (!userId.equals(event.getInitiator())) {
             throw new ConflictException("User is not event initiator");
         }
 
@@ -563,7 +563,7 @@ public class EventService {
                     log.warn("User with ID {} not found", userId);
                     return new NotFoundException("User with id: " + userId + "was not found");
                 });
-        if (!event.getInitiatorId().equals(eventOwner.getId())) {
+        if (!event.getInitiator().equals(eventOwner.getId())) {
             throw new ConflictException("User with id = " + userId + " is not event initiator");
         }
         return requestClient.findAllByEventId(eventId);

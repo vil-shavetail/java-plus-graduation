@@ -13,7 +13,7 @@ spring:
         - id: request-service
           uri: lb://request-service
           predicates:
-            - Path=/users/{userId}/requests/**, /users/{userId}/events/{eventId}/requests, /client/requests/**
+            - Path=/users/{userId}/events/{eventId}/requests, /users/{userId}/requests/**,
 
         - id: user-service
           uri: lb://user-service
@@ -23,7 +23,7 @@ spring:
         - id: event-service
           uri: lb://event-service
           predicates:
-            - Path=/categories/**, /admin/**, /client/**, /users/**, /events/**, /compilations/**
+            - Path=/categories/**, /admin/**, /events/**, /compilations/**, /users/**
 
         - id: stats-server
           uri: lb://stats-server

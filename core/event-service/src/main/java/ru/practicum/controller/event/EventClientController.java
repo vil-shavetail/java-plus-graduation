@@ -9,7 +9,7 @@ import ru.practicum.service.EventService;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/client/events")
+@RequestMapping("/client/event")
 @RequiredArgsConstructor
 public class EventClientController {
 

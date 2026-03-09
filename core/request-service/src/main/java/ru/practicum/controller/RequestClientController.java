@@ -11,7 +11,7 @@ import ru.practicum.service.ParticipationRequestService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/client/requests")
+@RequestMapping("/client/request")
 @RequiredArgsConstructor
 public class RequestClientController {
 

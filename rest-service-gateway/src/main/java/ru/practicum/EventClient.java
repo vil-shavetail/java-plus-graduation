@@ -9,7 +9,7 @@ import ru.practicum.dto.event.EventFullDto;
 
 import java.util.Optional;
 
-@FeignClient(name = "event-service", path = "/client/events")
+@FeignClient(name = "event-service", path = "/client/event")
 public interface EventClient {
     @GetMapping("/{eventId}")
     Optional<EventFullDto> findById(@PathVariable Long eventId);

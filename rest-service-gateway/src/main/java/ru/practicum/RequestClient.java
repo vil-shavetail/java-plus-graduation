@@ -7,7 +7,7 @@ import ru.practicum.enumeration.ParticipationStatus;
 
 import java.util.List;
 
-@FeignClient(name = "request-service", path = "/client/requests")
+@FeignClient(name = "request-service", path = "/client/request")
 public interface RequestClient {
     @GetMapping("/exists?requesterId={requesterId}&eventId={eventId}&status={status}")
     boolean existsByRequesterAndEventIdAndStatus(

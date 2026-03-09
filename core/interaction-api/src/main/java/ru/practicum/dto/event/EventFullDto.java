@@ -67,7 +67,7 @@ public class EventFullDto {
      * Инициатор события
      */
     @NotNull
-    private UserShortDto initiator;
+    private Long initiator;
 
     /**
      * Локация события
