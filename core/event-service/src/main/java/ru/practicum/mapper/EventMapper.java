@@ -93,7 +93,6 @@ public interface EventMapper {
     @Mapping(target = "createdOn", ignore = true)
     @Mapping(target = "publishedOn", ignore = true)
     @Mapping(target = "state", ignore = true)
-    @Mapping(target = "confirmedRequests", ignore = true)
-    void updateFromFullDto(EventFullDto dto, @MappingTarget Event entity);
+    void updateFromFullDto(EventFullDto dto, @MappingTarget Event event);
 
 }

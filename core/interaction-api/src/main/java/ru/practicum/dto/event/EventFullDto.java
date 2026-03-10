@@ -9,7 +9,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import ru.practicum.dto.location.LocationDto;
 import ru.practicum.dto.category.CategoryDto;
-import ru.practicum.dto.user.UserShortDto;
 import ru.practicum.enumeration.EventState;
 
 import java.time.LocalDateTime;
@@ -43,7 +42,7 @@ public class EventFullDto {
     /**
      * Количество одобренных заявок на участие в данном событии
      */
-    private Integer confirmedRequests;
+    private Long confirmedRequests;
 
     /**
      * Дата и время создания события

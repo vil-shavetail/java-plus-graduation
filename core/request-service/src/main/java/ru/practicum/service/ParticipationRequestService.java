@@ -50,7 +50,7 @@ public class ParticipationRequestService {
             throw new ConflictException("Cannot participate in an unpublished event");
         }
         Integer participantLimit = event.getParticipantLimit();
-        Integer confirmedRequests = event.getConfirmedRequests();
+        Long confirmedRequests = event.getConfirmedRequests();
         if (participantLimit != 0 && confirmedRequests >= participantLimit) {
             throw new ConflictException("Participation request limit reached for event id=" + eventId);
         }
