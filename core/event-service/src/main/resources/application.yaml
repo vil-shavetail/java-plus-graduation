@@ -17,3 +17,32 @@ eureka:
   client:
     serviceUrl:
       defaultZone: http://localhost:8761/eureka/
+
+resilience4j.circuitbreaker:
+  instances:
+    request-service:
+      register-health-indicator: true
+      sliding-window-size: 10
+      minimum-number-of-calls: 5
+      permitted-number-of-calls-in-half-open-state: 3
+      wait-duration-in-open-state: 10s
+      failure-rate-threshold: 50
+      event-consumer-buffer-size: 10
+
+resilience4j.retry:
+  instances:
+    request-service-retry:
+      max-attempts: 3
+      wait-duration: 1s
+      enable-exponential-backoff: true
+      exponential-backoff-multiplier: 2
+
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 5000
+        loggerLevel: basic
+  hystrix:
+    enabled: false
