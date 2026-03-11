@@ -569,9 +569,9 @@ public class EventService {
         return requestClient.findAllByEventId(eventId);
     }
 
-    public EventFullDto findById(Long eventId) {
+    public EventSFRDto findById(Long eventId) {
         return eventRepository.findById(eventId)
-                .map(eventMapper::toFullDto)
+                .map(eventMapper::toSFRDto)
                 .orElseThrow(() -> new NotFoundException("Event with id " + eventId + " not found"));
     }
 

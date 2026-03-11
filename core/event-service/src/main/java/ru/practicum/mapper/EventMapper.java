@@ -1,11 +1,7 @@
 package ru.practicum.mapper;
 
 import org.mapstruct.*;
-import ru.practicum.dto.event.EventFullDto;
-import ru.practicum.dto.event.EventShortDto;
-import ru.practicum.dto.event.NewEventDto;
-import ru.practicum.dto.event.UpdateEventAdminRequest;
-import ru.practicum.dto.event.UpdateEventUserRequest;
+import ru.practicum.dto.event.*;
 import ru.practicum.model.Event;
 
 /**
@@ -40,6 +36,20 @@ public interface EventMapper {
     @Mapping(target = "views", ignore = true)
     @Mapping(target = "confirmedRequests", source = "confirmedRequests")
     EventFullDto toFullDto(Event event);
+
+    /**
+     * Преобразовать Event entity в EventFullDto
+     *
+     * @param event Event entity
+     * @return EventSFRDto
+     */
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "confirmedRequests", ignore = true)
+    @Mapping(target = "initiator", ignore = true)
+    @Mapping(target = "participantLimit", ignore = true)
+    @Mapping(target = "publishedOn", ignore = true)
+    @Mapping(target = "requestModeration", ignore = true)
+    EventSFRDto toSFRDto(Event event);
 
     /**
      * Преобразовать Event entity в EventShortDto

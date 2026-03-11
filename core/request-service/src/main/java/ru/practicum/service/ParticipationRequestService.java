@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import ru.practicum.EventClient;
 import ru.practicum.UserClient;
 import ru.practicum.dto.event.EventFullDto;
+import ru.practicum.dto.event.EventSFRDto;
 import ru.practicum.dto.request.ParticipationRequestDto;
 import ru.practicum.dto.user.UserDto;
 import ru.practicum.enumeration.ParticipationStatus;
@@ -38,7 +39,7 @@ public class ParticipationRequestService {
                     log.warn("User with ID {} not found", userId);
                     return new NotFoundException("User with id: " + userId + "was not found");
                 });
-        EventFullDto event = eventClient.findById(eventId);
+        EventSFRDto event = eventClient.findById(eventId);
         if (event == null) {
             throw new NotFoundException("Event with id: " + eventId + " was not found");
         }

@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.dto.event.EventFullDto;
+import ru.practicum.dto.event.EventSFRDto;
 import ru.practicum.service.EventService;
 
 
@@ -15,8 +16,8 @@ public class EventClientController {
     private final EventService eventService;
 
     @GetMapping("/{eventId}")
-    public ResponseEntity<EventFullDto> findById(@PathVariable Long eventId) {
-        EventFullDto event = eventService.findById(eventId);
+    public ResponseEntity<EventSFRDto> findById(@PathVariable Long eventId) {
+        EventSFRDto event = eventService.findById(eventId);
         return ResponseEntity.ok(event);
     }
 
