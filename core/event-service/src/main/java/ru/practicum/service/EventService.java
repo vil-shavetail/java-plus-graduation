@@ -569,20 +569,19 @@ public class EventService {
         return requestClient.findAllByEventId(eventId);
     }
 
-    public Optional<EventFullDto> findById(Long eventId) {
+    public EventFullDto findById(Long eventId) {
         return eventRepository.findById(eventId)
-                .map(eventMapper::toFullDto);
+                .map(eventMapper::toFullDto)
+                .orElseThrow(() -> new NotFoundException("Event with id " + eventId + " not found"));
     }
 
     @Transactional
-    public EventFullDto save(Long eventId, EventFullDto eventDto) {
-        Event existingEvent = eventRepository.findById(eventId)
-                .orElseThrow(() -> new NotFoundException("Event with id=" + eventId));
+    public void incrementConfirmedRequests(Long eventId) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException("Event not found: " + eventId));
 
-        // Обновляем поля из DTO с игнорированием null‑значений
-        eventMapper.updateFromFullDto(eventDto, existingEvent);
-        Event savedEvent = eventRepository.save(existingEvent);
-
-        return eventMapper.toFullDto(savedEvent);
+        event.setConfirmedRequests(event.getConfirmedRequests() + 1);
+        eventRepository.save(event);
+        log.info("Incremented confirmed requests for event {} to {}", eventId, event.getConfirmedRequests());
     }
 }

@@ -38,11 +38,10 @@ public class ParticipationRequestService {
                     log.warn("User with ID {} not found", userId);
                     return new NotFoundException("User with id: " + userId + "was not found");
                 });
-        EventFullDto event = eventClient.findById(eventId)
-                .orElseThrow(() -> {
-                    log.warn("Event with ID {} not found", eventId);
-                    return new NotFoundException("Event with id: " + eventId + "was not found");
-                });
+        EventFullDto event = eventClient.findById(eventId);
+        if (event == null) {
+            throw new NotFoundException("Event with id: " + eventId + " was not found");
+        }
         if (event.getInitiator().equals(userId)) {
             throw new ConflictException("User cannot request participation in their own event");
         }
@@ -69,8 +68,7 @@ public class ParticipationRequestService {
         ParticipationRequest savedRequest = requestRepository.save(request);
         if (savedRequest.getStatus() == ParticipationStatus.CONFIRMED) {
             event.setConfirmedRequests(confirmedRequests + 1);
-            eventClient.save(event.getId(), event);
-            log.info("Updated confirmedRequests for event {} to {}", eventId, event.getConfirmedRequests());
+            eventClient.incrementConfirmedRequests(event.getId());
         }
         log.info("The request was successfully created: {}", savedRequest);
         return ParticipationRequestMapper.INSTANCE.toDto(savedRequest);

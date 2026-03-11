@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.dto.event.EventFullDto;
 import ru.practicum.service.EventService;
 
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/client/event")
@@ -16,16 +15,14 @@ public class EventClientController {
     private final EventService eventService;
 
     @GetMapping("/{eventId}")
-    public ResponseEntity<Optional<EventFullDto>> findById(@PathVariable Long eventId) {
-        Optional<EventFullDto> event = eventService.findById(eventId);
+    public ResponseEntity<EventFullDto> findById(@PathVariable Long eventId) {
+        EventFullDto event = eventService.findById(eventId);
         return ResponseEntity.ok(event);
     }
 
-    @PutMapping("/{eventId}")
-    public ResponseEntity<EventFullDto> save(
-            @PathVariable Long eventId,
-            @RequestBody EventFullDto event) {
-        EventFullDto savedEvent = eventService.save(eventId, event);
-        return ResponseEntity.ok(savedEvent);
+    @PutMapping("/{eventId}/increment-confirmed-requests")
+    public ResponseEntity<Void> incrementConfirmedRequests(@PathVariable Long eventId) {
+        eventService.incrementConfirmedRequests(eventId);
+        return ResponseEntity.noContent().build();
     }
 }

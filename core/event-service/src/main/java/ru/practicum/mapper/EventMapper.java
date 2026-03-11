@@ -85,14 +85,4 @@ public interface EventMapper {
     @Mapping(target = "state", ignore = true)
     @Mapping(target = "confirmedRequests", ignore = true)
     void updateEventFromAdminRequest(UpdateEventAdminRequest updateRequest, @MappingTarget Event event);
-
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "initiator", ignore = true)
-    @Mapping(target = "category", ignore = true)
-    @Mapping(target = "createdOn", ignore = true)
-    @Mapping(target = "publishedOn", ignore = true)
-    @Mapping(target = "state", ignore = true)
-    void updateFromFullDto(EventFullDto dto, @MappingTarget Event event);
-
 }
