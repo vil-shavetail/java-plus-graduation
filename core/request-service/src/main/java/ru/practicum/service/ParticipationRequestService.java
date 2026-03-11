@@ -6,7 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.practicum.EventClient;
 import ru.practicum.UserClient;
-import ru.practicum.dto.event.EventFullDto;
 import ru.practicum.dto.event.EventSFRDto;
 import ru.practicum.dto.request.ParticipationRequestDto;
 import ru.practicum.dto.user.UserDto;
@@ -68,7 +67,6 @@ public class ParticipationRequestService {
         request.setCreated(LocalDateTime.now());
         ParticipationRequest savedRequest = requestRepository.save(request);
         if (savedRequest.getStatus() == ParticipationStatus.CONFIRMED) {
-            event.setConfirmedRequests(confirmedRequests + 1);
             eventClient.incrementConfirmedRequests(event.getId());
         }
         log.info("The request was successfully created: {}", savedRequest);

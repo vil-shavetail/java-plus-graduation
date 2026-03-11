@@ -3,7 +3,6 @@ package ru.practicum.controller.event;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.dto.event.EventFullDto;
 import ru.practicum.dto.event.EventSFRDto;
 import ru.practicum.service.EventService;
 

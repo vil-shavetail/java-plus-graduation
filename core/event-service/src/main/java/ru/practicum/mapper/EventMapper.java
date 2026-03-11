@@ -38,17 +38,12 @@ public interface EventMapper {
     EventFullDto toFullDto(Event event);
 
     /**
-     * Преобразовать Event entity в EventFullDto
+     * Преобразовать Event entity в EventSFRDto
      *
      * @param event Event entity
      * @return EventSFRDto
      */
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "confirmedRequests", ignore = true)
-    @Mapping(target = "initiator", ignore = true)
-    @Mapping(target = "participantLimit", ignore = true)
-    @Mapping(target = "publishedOn", ignore = true)
-    @Mapping(target = "requestModeration", ignore = true)
+    @Mapping(target = "confirmedRequests", source = "confirmedRequests")
     EventSFRDto toSFRDto(Event event);
 
     /**
