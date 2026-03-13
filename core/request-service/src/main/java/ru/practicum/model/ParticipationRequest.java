@@ -1,0 +1,49 @@
+package ru.practicum.model;
+
+import jakarta.persistence.*;
+import lombok.*;
+import ru.practicum.enumeration.ParticipationStatus;
+
+import java.time.LocalDateTime;
+
+/**
+ * Заявка на участие в событии
+ */
+@Entity
+@Table(name = "participation_requests")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class ParticipationRequest {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    /**
+     * Дата и время создания заявки
+     */
+    @Column(name = "created", nullable = false)
+    private LocalDateTime created;
+
+    /**
+     * Событие
+     */
+    @JoinColumn(name = "event_id", nullable = false)
+    private Long eventId;
+
+    /**
+     * Id пользователя, отправившего заявку
+     */
+    @Column(name = "requester_id", nullable = false)
+    private Long requester;
+
+    /**
+     * Статус заявки
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
+    private ParticipationStatus status;
+}

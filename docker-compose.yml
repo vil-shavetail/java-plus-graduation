@@ -15,16 +15,48 @@ services:
       interval: 5s
       retries: 10
 
-  ewm-db:
+  event-db:
     image: postgres:16.1
     ports:
       - "5433:5432"
     environment:
-      POSTGRES_DB: ewm-db
+      POSTGRES_DB: event-db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 12345
     volumes:
-      - ewm-db-data:/var/lib/postgresql/data
+      - event-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER
+      timeout: 5s
+      interval: 5s
+      retries: 10
+
+  user-db:
+    image: postgres:16.1
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_DB: user-db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12345
+    volumes:
+      - user-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER
+      timeout: 5s
+      interval: 5s
+      retries: 10
+
+  request-db:
+    image: postgres:16.1
+    ports:
+      - "5435:5432"
+    environment:
+      POSTGRES_DB: request-db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12345
+    volumes:
+      - request-db-data:/var/lib/postgresql/data
     healthcheck:
       test: pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER
       timeout: 5s
@@ -32,5 +64,7 @@ services:
       retries: 10
 
 volumes:
-  ewm-db-data:
+  event-db-data:
   stats-db-data:
+  user-db-data:
+  request-db-data:
