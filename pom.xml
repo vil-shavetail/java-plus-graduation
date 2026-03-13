@@ -18,6 +18,11 @@
         <module>stats</module>
         <module>rest-service-gateway</module>
         <module>infra</module>
+        <module>stats/collector</module>
+        <module>stats/aggregator</module>
+        <module>stats/analyzer</module>
+        <module>stats/stats-client</module>
+        <module>stats/serialization</module>
     </modules>
 
     <groupId>ru.practicum</groupId>
