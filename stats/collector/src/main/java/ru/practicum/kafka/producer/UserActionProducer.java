@@ -14,7 +14,7 @@ public class UserActionProducer {
     private final String topicName;
 
     public UserActionProducer(KafkaTemplate<String, UserActionAvro> kafkaTemplate,
-                              @Value("${kafka.topic}") String topicName) {
+                              @Value("${collector.kafka.producer.topic}") String topicName) {
         this.kafkaTemplate = kafkaTemplate;
         this.topicName = topicName;
     }
