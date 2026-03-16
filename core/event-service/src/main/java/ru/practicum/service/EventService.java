@@ -8,8 +8,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.DTO.RequestStatisticDto;
-import ru.practicum.DTO.ResponseStatisticDto;
 import ru.practicum.RequestClient;
 import ru.practicum.UserClient;
 import ru.practicum.dto.event.*;
@@ -28,7 +26,6 @@ import ru.practicum.mapper.EventMapper;
 import ru.practicum.model.*;
 import ru.practicum.repository.CategoryRepository;
 import ru.practicum.repository.EventRepository;
-import ru.practicum.util.UriUtils;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -49,7 +46,6 @@ public class EventService {
     private final UserClient userClient;
     private final CategoryRepository categoryRepository;
     private final EventMapper eventMapper;
-    private final StatsClient statsClient;
     private final RequestClient requestClient;
 
     private static final int MIN_HOURS_BEFORE_EVENT = 2;
@@ -117,57 +113,20 @@ public class EventService {
                         eventRepository.findAll(predicate, pageable).spliterator(), false)
                 .toList();
 
-        // Логирование запроса в статистику
-        RequestStatisticDto hitDto = new RequestStatisticDto(
-                APP_NAME,
-                request.getRequestURI(),
-                request.getRemoteAddr(),
-                LocalDateTime.now().format(FORMATTER)
-        );
-        statsClient.saveHit(hitDto);
-
-        // Получение просмотров из статистики
-        Map<Long, Long> viewsMap = new HashMap<>();
-        if (!eventsList.isEmpty()) {
-            List<Long> eventIds = eventsList.stream()
-                    .map(Event::getId)
-                    .collect(Collectors.toList());
-
-            List<String> uris = UriUtils.makeEventUris(eventIds);
-
-            LocalDateTime statsStart = eventsList.stream()
-                    .map(Event::getCreatedOn)
-                    .min(LocalDateTime::compareTo)
-                    .orElse(LocalDateTime.now().minusYears(1));
-
-            List<ResponseStatisticDto> stats = statsClient.getStats(
-                    statsStart.format(FORMATTER),
-                    LocalDateTime.now().format(FORMATTER),
-                    uris,
-                    true
-            );
-
-            viewsMap = stats.stream()
-                    .collect(Collectors.toMap(
-                            stat -> Long.parseLong(stat.getUri().substring(stat.getUri().lastIndexOf("/") + 1)),
-                            ResponseStatisticDto::getHits,
-                            (existing, replacement) -> existing
-                    ));
-        }
-
         // Преобразование в DTO с проставлением просмотров
-        Map<Long, Long> finalViewsMap = viewsMap;
         List<EventShortDto> result = eventsList.stream()
-                .map(event -> {
-                    EventShortDto dto = eventMapper.toShortDto(event);
-                    dto.setViews(finalViewsMap.getOrDefault(event.getId(), 0L));
-                    return dto;
-                })
+                .map(eventMapper::toShortDto)
                 .collect(Collectors.toList());
 
-        // Сортировка по просмотрам, если указана
-        if (sort == EventSort.VIEWS) {
-            result.sort(Comparator.comparing(EventShortDto::getViews).reversed());
+        // Сортировка по просмотрам больше не имеет смысла — поле views отсутствует
+        // Если требуется, можно добавить другую сортировку
+        // Например, по дате события:
+        if (sort == EventSort.EVENT_DATE) {
+            result.sort(Comparator.comparing(EventShortDto::getEventDate));
+        }
+        // Или по умолчанию — по ID:
+        else {
+            result.sort(Comparator.comparing(EventShortDto::getId));
         }
 
         log.info("Найдено {} публичных событий", result.size());
@@ -185,27 +144,9 @@ public class EventService {
             throw new NotFoundException("Событие не опубликовано");
         }
 
-        // Логирование просмотра в статистику
-        RequestStatisticDto hitDto = new RequestStatisticDto(
-                APP_NAME,
-                request.getRequestURI(),
-                request.getRemoteAddr(),
-                LocalDateTime.now().format(FORMATTER)
-        );
-        statsClient.saveHit(hitDto);
-
-        // Получение количества просмотров из статистики
-        List<ResponseStatisticDto> stats = statsClient.getStats(
-                event.getCreatedOn().format(FORMATTER),
-                LocalDateTime.now().format(FORMATTER),
-                List.of(UriUtils.makeEventUri(id)),
-                true
-        );
-
         EventFullDto result = eventMapper.toFullDto(event);
-        result.setViews(stats.isEmpty() ? 0L : stats.getFirst().getHits());
 
-        log.info("Получено публичное событие с ID: {}, просмотров: {}", id, result.getViews());
+        log.info("Получено публичное событие с ID: {}", id);
         return result;
     }
 
