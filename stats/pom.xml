@@ -12,17 +12,17 @@
     <artifactId>stats</artifactId>
     <packaging>pom</packaging>
 
+    <modules>
+        <module>stats-client</module>
+        <module>serialization</module>
+        <module>collector</module>
+        <module>analyzer</module>
+        <module>aggregator</module>
+    </modules>
+
     <properties>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
     </properties>
-
-    <dependencies>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-
-    </dependencies>
 
 </project>
