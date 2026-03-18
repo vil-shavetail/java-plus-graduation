@@ -9,15 +9,18 @@ spring:
   application:
     name: collector
 
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      client-id: "stats.collector"
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: ru.practicum.AvroSerializer
+
 collector:
   kafka:
     producer:
-      properties:
-        "bootstrap.servers": localhost:9092
-        "client.id": "stats.collector"
-        "key.serializer": org.apache.kafka.common.serialization.StringSerializer
-        "value.serializer": ru.practicum.kafka.AvroSerializer
-      topic: stats.user-actions.v1
+      topic:
+        actions: "stats.user-actions.v1"
 
 logging:
   level:

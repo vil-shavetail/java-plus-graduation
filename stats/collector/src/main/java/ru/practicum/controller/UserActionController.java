@@ -1,57 +1,51 @@
 package ru.practicum.controller;
 
 import com.google.protobuf.Empty;
+import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.devh.boot.grpc.server.service.GrpcService;
-import ru.practicum.ewm.stats.avro.ActionTypeAvro;
-import ru.practicum.ewm.stats.avro.UserActionAvro;
 import ru.practicum.ewm.stats.proto.UserActionControllerGrpc;
 import ru.practicum.ewm.stats.proto.UserActionProto;
-import ru.practicum.kafka.producer.UserActionProducer;
+import ru.practicum.service.CollectorService;
 
-import java.time.Instant;
 
+@Slf4j
 @GrpcService
+@RequiredArgsConstructor
 public class UserActionController extends UserActionControllerGrpc.UserActionControllerImplBase {
-    private final UserActionProducer userActionProducer;
-
-    public UserActionController(UserActionProducer userActionProducer) {
-        this.userActionProducer = userActionProducer;
-    }
+    private final CollectorService collectorService;
 
     @Override
     public void collectUserAction(UserActionProto request,
                                   StreamObserver<Empty> responseObserver) {
-
-        // Преобразуем gRPC-сообщение в Avro-объект
-        UserActionAvro avroMessage = convertToAvro(request);
-
-        // Отправляем в Kafka
-        userActionProducer.sendUserAction(avroMessage);
-
-        // Возвращаем пустой ответ
-        responseObserver.onNext(com.google.protobuf.Empty.getDefaultInstance());
-        responseObserver.onCompleted();
+        if (request == null || !request.hasTimestamp()) {
+            log.warn("Invalid request received: {}", request);
+            responseObserver.onError(Status.INVALID_ARGUMENT
+                    .withDescription("The request must not be null.")
+                    .asRuntimeException());
+            return;
+        }
+        try {
+            log.debug("Processing user action {} for event {}", request.getUserId(), request.getEventId());
+            collectorService.registerUserAction(request);
+            responseObserver.onNext(Empty.getDefaultInstance());
+            responseObserver.onCompleted();
+        } catch (Exception e) {
+            handleError(e, responseObserver);
+        }
     }
 
-    private UserActionAvro convertToAvro(UserActionProto proto) {
-        UserActionAvro avro = new UserActionAvro();
-        avro.setUserId(proto.getUserId());
-        avro.setEventId(proto.getEventId());
-
-        // Конвертируем тип действия
-        ActionTypeAvro actionType = switch (proto.getActionType()) {
-            case ACTION_VIEW -> ActionTypeAvro.VIEW;
-            case ACTION_REGISTER -> ActionTypeAvro.REGISTER;
-            case ACTION_LIKE -> ActionTypeAvro.LIKE;
-            default -> throw new IllegalArgumentException("Unknown action type: " + proto.getActionType());
-        };
-        avro.setActionType(actionType);
-
-        // Конвертируем timestamp
-        avro.setTimestamp(Instant.ofEpochSecond(proto.getTimestamp().getSeconds() * 1000L +
-                proto.getTimestamp().getNanos() / 1_000_000));
-
-        return avro;
+    private void handleError(Exception e, StreamObserver<Empty> responseObserver) {
+        Status status;
+        if (e instanceof IllegalArgumentException) {
+            log.error("Validation error: {}", e.getMessage());
+            status = Status.INVALID_ARGUMENT.withDescription(e.getMessage());
+        } else {
+            log.error("Data collection error: ", e);
+            status = Status.INTERNAL.withDescription("Collector service error.");
+        }
+        responseObserver.onError(status.withCause(e).asRuntimeException());
     }
 }
