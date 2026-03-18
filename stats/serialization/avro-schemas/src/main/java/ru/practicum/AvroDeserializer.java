@@ -1,46 +1,47 @@
 package ru.practicum;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.Schema;
-import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.io.DatumReader;
 import org.apache.avro.specific.SpecificDatumReader;
 import org.apache.avro.io.BinaryDecoder;
 import org.apache.avro.io.DecoderFactory;
+import org.apache.avro.specific.SpecificRecordBase;
+import org.apache.kafka.common.errors.SerializationException;
+import org.apache.kafka.common.serialization.Deserializer;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
-@SuppressWarnings("unchecked")
-public class AvroDeserializer<T extends GenericRecord> {
-    private final SpecificDatumReader<T> datumReader;
-    private final Schema schema;
+@Slf4j
+public class AvroDeserializer<T extends SpecificRecordBase> implements Deserializer<T> {
+    private final DecoderFactory decoderFactory;
+    private final DatumReader<T> reader;
 
-    public AvroDeserializer(Class<T> clazz) {
-        this.schema = getSchemaFromClass(clazz);
-        this.datumReader = new SpecificDatumReader<>(schema);
+    public AvroDeserializer(Schema schema) {
+        this(DecoderFactory.get(), schema);
     }
 
-    private Schema getSchemaFromClass(Class<T> clazz) {
-        try {
-            return (Schema) clazz.getField("SCHEMA$").get(null);
-        } catch (Exception e) {
-            throw new IllegalArgumentException(
-                    "Class " + clazz.getName() + " does not have SCHEMA$ field", e
-            );
-        }
+    public AvroDeserializer(DecoderFactory decoderFactory, Schema schema) {
+        this.decoderFactory = decoderFactory;
+        this.reader = new SpecificDatumReader<>(schema);
     }
 
-    public T deserialize(byte[] data) {
+    @Override
+    public T deserialize(String topic, byte[] data) {
         if (data == null) {
-            throw new IllegalArgumentException("Cannot deserialize null data");
+            return null;
         }
-        if (data.length == 0) {
-            throw new IllegalArgumentException("Cannot deserialize empty byte array");
-        }
-        try (ByteArrayInputStream inputStream = new ByteArrayInputStream(data)) {
-            BinaryDecoder decoder = DecoderFactory.get().binaryDecoder(inputStream, null);
-            return datumReader.read(null, decoder);
-        } catch (IOException e) {
-            throw new RuntimeException("Error deserializing Avro data", e);
+        try (ByteArrayInputStream is = new ByteArrayInputStream(data)) {
+            BinaryDecoder decoder = decoderFactory.binaryDecoder(is, null);
+            return reader.read(null, decoder);
+
+        } catch (IOException ex) {
+            log.error("Error deserializing Avro data from the topic: {}", topic, ex);
+            throw new SerializationException("Error deserializing Avro data from the topic: " + topic, ex);
+        } catch (Exception ex) {
+            log.error("Unknown deserialization error for topic: {}", topic, ex);
+            throw new SerializationException("Unknown deserialization error for topic: " + topic, ex);
         }
     }
 }
