@@ -31,16 +31,16 @@ services:
                              --bootstrap-server kafka:29092'"
     init: true
 
-  stats-db:
+  analyzer-db:
     image: postgres:16.1
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_DB: stats-db
+      POSTGRES_DB: analyzer-db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 12345
     volumes:
-      - stats-db-data:/var/lib/postgresql/data
+      - analyzer-db-data:/var/lib/postgresql/data
     healthcheck:
       test: pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER
       timeout: 5s
@@ -97,6 +97,6 @@ services:
 
 volumes:
   event-db-data:
-  stats-db-data:
+  analyzer-db-data:
   user-db-data:
   request-db-data:
