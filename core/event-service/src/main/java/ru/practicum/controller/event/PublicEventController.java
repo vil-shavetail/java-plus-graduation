@@ -9,6 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.AnalyzerClient;
+import ru.practicum.CollectorClient;
 import ru.practicum.dto.event.EventFullDto;
 import ru.practicum.dto.event.EventShortDto;
 import ru.practicum.enumeration.EventSort;
@@ -16,6 +18,7 @@ import ru.practicum.service.EventService;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
 
 /**
  * Публичный API для работы с событиями
@@ -26,8 +29,9 @@ import java.util.List;
 @Slf4j
 @Validated
 public class PublicEventController {
-
     private final EventService eventService;
+    private final AnalyzerClient analyzer;
+    private final CollectorClient collector;
 
     /**
      * Получение событий с возможностью фильтрации
@@ -69,16 +73,15 @@ public class PublicEventController {
      * Получение подробной информации об опубликованном событии по его идентификатору
      *
      * @param id id события
-     * @param request HTTP запрос (для получения IP и URI для статистики)
+     * @param userId id пользователя
      * @return подробная информация о событии
      */
     @GetMapping("/{id}")
     public EventFullDto getEventById(
             @PathVariable @Min(1) Long id,
-            HttpServletRequest request) {
+            @RequestHeader("X-EWM-USER-ID") Long userId) {
 
-        log.info("GET /events/{}: id={}", id, id);
-
-        return eventService.getPublicEventById(id, request);
+        log.info("GET /events/{}: id={}, userId={}", id, id, userId);
+        return eventService.getPublicEventById(id, userId);
     }
 }

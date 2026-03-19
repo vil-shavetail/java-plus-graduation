@@ -110,5 +110,5 @@ public class EventFullDto {
     /**
      * Количество просмотров события
      */
-    private Long views;
+    private Double rating;
 }

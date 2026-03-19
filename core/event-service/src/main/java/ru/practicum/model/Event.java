@@ -111,4 +111,7 @@ public class Event {
     @Column(name = "confirmed_requests", nullable = false)
     @Builder.Default
     private Integer confirmedRequests = 0;
+
+    @Transient
+    private Double rating;
 }

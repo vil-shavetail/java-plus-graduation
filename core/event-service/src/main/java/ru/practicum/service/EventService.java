@@ -1,6 +1,7 @@
 package ru.practicum.service;
 
 import com.querydsl.core.BooleanBuilder;
+import io.grpc.StatusRuntimeException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -8,6 +9,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.AnalyzerClient;
+import ru.practicum.CollectorClient;
 import ru.practicum.RequestClient;
 import ru.practicum.UserClient;
 import ru.practicum.dto.event.*;
@@ -19,6 +22,10 @@ import ru.practicum.enumeration.EventSort;
 import ru.practicum.enumeration.EventState;
 import ru.practicum.enumeration.ParticipationStatus;
 import ru.practicum.enumeration.StateAction;
+import ru.practicum.ewm.stats.proto.ActionTypeProto;
+import ru.practicum.ewm.stats.proto.RecommendedEventProto;
+import ru.practicum.ewm.stats.proto.SimilarEventsRequestProto;
+import ru.practicum.ewm.stats.proto.UserActionProto;
 import ru.practicum.exception.BadRequestException;
 import ru.practicum.exception.ConflictException;
 import ru.practicum.exception.NotFoundException;
@@ -47,6 +54,8 @@ public class EventService {
     private final CategoryRepository categoryRepository;
     private final EventMapper eventMapper;
     private final RequestClient requestClient;
+    private final CollectorClient collector;
+    private final AnalyzerClient analyzer;
 
     private static final int MIN_HOURS_BEFORE_EVENT = 2;
     private static final String APP_NAME = "main-service";
@@ -136,7 +145,7 @@ public class EventService {
     /**
      * Получить публичное событие по ID
      */
-    public EventFullDto getPublicEventById(Long id, HttpServletRequest request) {
+    public EventFullDto getPublicEventById(Long id, Long userId) {
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Событие не найдено с ID: " + id));
 
@@ -144,7 +153,16 @@ public class EventService {
             throw new NotFoundException("Событие не опубликовано");
         }
 
+        // Отправляем информацию о просмотре
+        UserActionProto actionProto = UserActionProto.newBuilder()
+                .setUserId(userId)
+                .setEventId(id)
+                .setActionType(ActionTypeProto.ACTION_VIEW)
+                .build();
+        collector.newUserAction(actionProto);
+
         EventFullDto result = eventMapper.toFullDto(event);
+        result.setRating(getEventRating(id));
 
         log.info("Получено публичное событие с ID: {}", id);
         return result;
@@ -523,5 +541,27 @@ public class EventService {
         event.setConfirmedRequests(event.getConfirmedRequests() + 1);
         eventRepository.save(event);
         log.info("Incremented confirmed requests for event {} to {}", eventId, event.getConfirmedRequests());
+    }
+
+    private double getEventRating(Long eventId) {
+        SimilarEventsRequestProto request = SimilarEventsRequestProto.newBuilder()
+                .setEventId(eventId)
+                .setMaxResults(1) // Получаем только одно «похожее» событие — само событие
+                .build();
+
+        try {
+            List<RecommendedEventProto> recommendations = analyzer.getSimilarEvents(request);
+            return recommendations.stream()
+                    .filter(r -> r.getEventId() == eventId)
+                    .findFirst()
+                    .map(RecommendedEventProto::getScore)
+                    .orElse(0.0);
+        } catch (StatusRuntimeException e) {
+            log.error("gRPC error while getting rating for event {}: {}", eventId, e.getStatus());
+            return 0.0;
+        } catch (Exception e) {
+            log.warn("Не удалось получить рейтинг для события {}: {}", eventId, e.getMessage());
+            return 0.0;
+        }
     }
 }
