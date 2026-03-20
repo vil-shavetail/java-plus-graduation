@@ -3,14 +3,14 @@ server:
 
 grpc:
   client:
-    analyzer: # <- должно соответствовать значению в @GrpcClient
-      address: 'discovery:///analyzer' # адрес gRPC-сервиса
+    collector:
+      address: 'discovery:///collector'
       enableKeepAlive: true
       keepAliveWithoutCalls: true
       negotiationType: plaintext
 
-    collector: # <- должно соответствовать значению в @GrpcClient
-      address: 'discovery:///collector' # адрес gRPC-сервиса
+    analyzer:
+      address: 'discovery:///analyzer'
       enableKeepAlive: true
       keepAliveWithoutCalls: true
       negotiationType: plaintext
