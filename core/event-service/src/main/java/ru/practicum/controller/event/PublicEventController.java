@@ -9,24 +9,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.AnalyzerClient;
 import ru.practicum.CollectorClient;
 import ru.practicum.dto.event.EventFullDto;
 import ru.practicum.dto.event.EventRecommendationDto;
 import ru.practicum.dto.event.EventShortDto;
 import ru.practicum.enumeration.EventSort;
 import ru.practicum.ewm.stats.proto.ActionTypeProto;
-import ru.practicum.ewm.stats.proto.RecommendedEventProto;
 import ru.practicum.ewm.stats.proto.UserActionProto;
-import ru.practicum.ewm.stats.proto.UserPredictionsRequestProto;
 import ru.practicum.exception.BadRequestException;
 import ru.practicum.service.EventService;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
-
 
 /**
  * Публичный API для работы с событиями
@@ -39,7 +34,6 @@ import java.util.stream.Collectors;
 public class PublicEventController {
     public static final String X_EWM_USER_ID = "X-EWM-USER-ID";
     private final EventService eventService;
-    private final AnalyzerClient analyzer;
     private final CollectorClient collector;
 
     /**
