@@ -26,13 +26,13 @@ public class PrivateParticipationRequestController {
             @RequestParam @NotNull Long eventId) {
             ParticipationRequestDto dto = service.addRequest(userId, eventId);
 
-        // Отправляем информацию о регистрации на мероприятие
-        UserActionProto actionProto = UserActionProto.newBuilder()
-                .setUserId(userId)
-                .setEventId(eventId)
-                .setActionType(ActionTypeProto.ACTION_REGISTER)
-                .build();
-        collector.newUserAction(actionProto);
+//        // Отправляем информацию о регистрации на мероприятие
+//        UserActionProto actionProto = UserActionProto.newBuilder()
+//                .setUserId(userId)
+//                .setEventId(eventId)
+//                .setActionType(ActionTypeProto.ACTION_REGISTER)
+//                .build();
+//        collector.newUserAction(actionProto);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
