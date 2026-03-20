@@ -12,12 +12,16 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.AnalyzerClient;
 import ru.practicum.CollectorClient;
 import ru.practicum.dto.event.EventFullDto;
+import ru.practicum.dto.event.EventRecommendationDto;
 import ru.practicum.dto.event.EventShortDto;
 import ru.practicum.enumeration.EventSort;
+import ru.practicum.ewm.stats.proto.RecommendedEventProto;
+import ru.practicum.ewm.stats.proto.UserPredictionsRequestProto;
 import ru.practicum.service.EventService;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 /**
@@ -29,6 +33,7 @@ import java.util.List;
 @Slf4j
 @Validated
 public class PublicEventController {
+    public static final String X_EWM_USER_ID = "X-EWM-USER-ID";
     private final EventService eventService;
     private final AnalyzerClient analyzer;
     private final CollectorClient collector;
@@ -79,9 +84,31 @@ public class PublicEventController {
     @GetMapping("/{id}")
     public EventFullDto getEventById(
             @PathVariable @Min(1) Long id,
-            @RequestHeader("X-EWM-USER-ID") Long userId) {
+            @RequestHeader(X_EWM_USER_ID) Long userId) {
 
         log.info("GET /events/{}: id={}, userId={}", id, id, userId);
         return eventService.getPublicEventById(id, userId);
+    }
+
+    @GetMapping("/recommendations")
+    public List<EventRecommendationDto> getEventRecommendations(
+            @RequestHeader(X_EWM_USER_ID) long userId,
+            @RequestParam(defaultValue = "10") @Positive Integer size) {
+
+        log.info("GET /events/recommendations: userId={}, size={}", userId, size);
+
+        UserPredictionsRequestProto request = UserPredictionsRequestProto.newBuilder()
+                .setUserId(userId)
+                .setMaxResults(size)
+                .build();
+
+        List<RecommendedEventProto> recommendations = analyzer.getRecommendedEventsForUser(request);
+
+        return recommendations.stream()
+                .map(recommendedEvent -> EventRecommendationDto.builder()
+                        .eventId(recommendedEvent.getEventId())
+                        .score(recommendedEvent.getScore())
+                        .build())
+                .collect(Collectors.toList());
     }
 }
