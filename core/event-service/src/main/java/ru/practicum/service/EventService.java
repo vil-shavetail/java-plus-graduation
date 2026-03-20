@@ -170,6 +170,7 @@ public class EventService {
 
         EventFullDto result = eventMapper.toFullDto(event);
         result.setRating(getEventRating(id));
+        result.setLikesCount(eventRepository.countLikesByEventId(result.getId()));
 
         log.info("Получено публичное событие с ID: {}", id);
         return result;
@@ -570,5 +571,16 @@ public class EventService {
             log.warn("Не удалось получить рейтинг для события {}: {}", eventId, e.getMessage());
             return 0.0;
         }
+    }
+
+    public EventFullDto addLike(long userId, long eventId) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException("Event with id " + eventId + " not found"));
+        if (event.getState() != EventState.PUBLISHED) {
+            throw new ConflictException("Event with id " + eventId + " is not published");
+        }
+        eventRepository.addLike(userId, eventId);
+        event.setLikes(eventRepository.countLikesByEventId(eventId));
+        return eventMapper.toFullDto(event);
     }
 }

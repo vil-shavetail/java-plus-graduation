@@ -49,5 +49,13 @@ public class EventSFRDto {
      */
     private Boolean requestModeration;
 
+    /**
+     * Количество просмотров события
+     */
     private Double rating;
+
+    /**
+     * Количество лайков события
+     */
+    private long likesCount;
 }

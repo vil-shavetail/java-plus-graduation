@@ -15,10 +15,13 @@ import ru.practicum.dto.event.EventFullDto;
 import ru.practicum.dto.event.EventRecommendationDto;
 import ru.practicum.dto.event.EventShortDto;
 import ru.practicum.enumeration.EventSort;
+import ru.practicum.ewm.stats.proto.ActionTypeProto;
 import ru.practicum.ewm.stats.proto.RecommendedEventProto;
+import ru.practicum.ewm.stats.proto.UserActionProto;
 import ru.practicum.ewm.stats.proto.UserPredictionsRequestProto;
 import ru.practicum.service.EventService;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -110,5 +113,27 @@ public class PublicEventController {
                         .score(recommendedEvent.getScore())
                         .build())
                 .collect(Collectors.toList());
+    }
+
+    @PutMapping("/events/{eventId}/like")
+    public void likeEvent(@PathVariable Long eventId,
+                          @RequestHeader(X_EWM_USER_ID) long userId) {
+        eventService.addLike(userId, eventId);
+
+        // Отправляем информацию о регистрации на мероприятие
+        long seconds = Instant.now().getEpochSecond();
+        int nanos = Instant.now().getNano();
+        UserActionProto actionProto = UserActionProto.newBuilder()
+                .setUserId(userId)
+                .setEventId(eventId)
+                .setActionType(ActionTypeProto.ACTION_LIKE)
+                .setTimestamp(
+                        com.google.protobuf.Timestamp.newBuilder()
+                                .setSeconds(seconds)
+                                .setNanos(nanos)
+                )
+                .build();
+
+        collector.sendUserAction(actionProto);
     }
 }

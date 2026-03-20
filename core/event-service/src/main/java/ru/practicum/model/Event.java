@@ -114,4 +114,7 @@ public class Event {
 
     @Transient
     private Double rating;
+
+    @Transient
+    Long likes;
 }
