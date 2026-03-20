@@ -172,7 +172,7 @@ public class EventService {
         collector.sendUserAction(actionProto);
 
         EventFullDto result = eventMapper.toFullDto(event);
-        result.setRating(0.0);
+//        result.setRating(0.0);
 
         log.info("Получено публичное событие с ID: {}", id);
         return result;
