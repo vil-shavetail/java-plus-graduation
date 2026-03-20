@@ -36,7 +36,6 @@ import ru.practicum.repository.EventRepository;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -59,8 +58,6 @@ public class EventService {
     private final AnalyzerClient analyzer;
 
     private static final int MIN_HOURS_BEFORE_EVENT = 2;
-    private static final String APP_NAME = "main-service";
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     /**
      * Получить публичные события с фильтрацией (только опубликованные)
