@@ -34,6 +34,7 @@ import ru.practicum.model.*;
 import ru.practicum.repository.CategoryRepository;
 import ru.practicum.repository.EventRepository;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -154,12 +155,21 @@ public class EventService {
         }
 
         // Отправляем информацию о просмотре
+        long seconds = Instant.now().getEpochSecond();
+        int nanos = Instant.now().getNano();
+
         UserActionProto actionProto = UserActionProto.newBuilder()
                 .setUserId(userId)
                 .setEventId(id)
                 .setActionType(ActionTypeProto.ACTION_VIEW)
+                .setTimestamp(
+                        com.google.protobuf.Timestamp.newBuilder()
+                                .setSeconds(seconds)
+                                .setNanos(nanos)
+                )
                 .build();
-        collector.newUserAction(actionProto);
+
+        collector.sendUserAction(actionProto);
 
         EventFullDto result = eventMapper.toFullDto(event);
         result.setRating(getEventRating(id));
