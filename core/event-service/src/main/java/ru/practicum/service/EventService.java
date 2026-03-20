@@ -145,7 +145,7 @@ public class EventService {
     /**
      * Получить публичное событие по ID
      */
-    public EventFullDto getPublicEventById(Long id, Long userId, HttpServletRequest request) {
+    public EventFullDto getPublicEventById(Long id, Long userId) {
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Событие не найдено с ID: " + id));
 
