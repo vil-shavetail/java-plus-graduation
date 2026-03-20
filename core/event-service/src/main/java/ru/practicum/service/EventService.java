@@ -22,10 +22,7 @@ import ru.practicum.enumeration.EventSort;
 import ru.practicum.enumeration.EventState;
 import ru.practicum.enumeration.ParticipationStatus;
 import ru.practicum.enumeration.StateAction;
-import ru.practicum.ewm.stats.proto.ActionTypeProto;
-import ru.practicum.ewm.stats.proto.RecommendedEventProto;
-import ru.practicum.ewm.stats.proto.SimilarEventsRequestProto;
-import ru.practicum.ewm.stats.proto.UserActionProto;
+import ru.practicum.ewm.stats.proto.*;
 import ru.practicum.exception.BadRequestException;
 import ru.practicum.exception.ConflictException;
 import ru.practicum.exception.NotFoundException;
@@ -581,5 +578,27 @@ public class EventService {
                 eventId,
                 ParticipationStatus.CONFIRMED
         );
+    }
+
+    public List<EventRecommendationDto> getEventRecommendations(long userId, Integer size) {
+        log.info("Processing recommendations for userId={}, size={}", userId, size);
+
+        UserPredictionsRequestProto request = UserPredictionsRequestProto.newBuilder()
+                .setUserId(userId)
+                .setMaxResults(size)
+                .build();
+
+        List<RecommendedEventProto> recommendations = analyzer.getRecommendedEventsForUser(request);
+
+        return recommendations.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
+    private EventRecommendationDto convertToDto(RecommendedEventProto recommendedEvent) {
+        return EventRecommendationDto.builder()
+                .eventId(recommendedEvent.getEventId())
+                .score(recommendedEvent.getScore())
+                .build();
     }
 }

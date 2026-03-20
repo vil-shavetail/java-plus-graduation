@@ -101,19 +101,7 @@ public class PublicEventController {
 
         log.info("GET /events/recommendations: userId={}, size={}", userId, size);
 
-        UserPredictionsRequestProto request = UserPredictionsRequestProto.newBuilder()
-                .setUserId(userId)
-                .setMaxResults(size)
-                .build();
-
-        List<RecommendedEventProto> recommendations = analyzer.getRecommendedEventsForUser(request);
-
-        return recommendations.stream()
-                .map(recommendedEvent -> EventRecommendationDto.builder()
-                        .eventId(recommendedEvent.getEventId())
-                        .score(recommendedEvent.getScore())
-                        .build())
-                .collect(Collectors.toList());
+        return eventService.getEventRecommendations(userId, size);
     }
 
     @PutMapping("/{eventId}/like")

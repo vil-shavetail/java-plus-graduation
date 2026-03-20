@@ -3,6 +3,7 @@ package ru.practicum.service;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.stats.avro.ActionTypeAvro;
 import ru.practicum.ewm.stats.avro.UserActionAvro;
 import ru.practicum.model.Interaction;
@@ -22,6 +23,7 @@ public class InteractionService {
      * Если взаимодействие уже существует и его рейтинг ниже нового — обновляет.
      * Иначе создаёт новую запись.
      */
+    @Transactional
     public void processUserAction(UserActionAvro userActionAvro) {
         if (userActionAvro == null) {
             log.warn("Received null user action request");
