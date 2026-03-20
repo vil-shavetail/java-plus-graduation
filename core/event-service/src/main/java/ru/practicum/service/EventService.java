@@ -154,25 +154,25 @@ public class EventService {
             throw new NotFoundException("Событие не опубликовано");
         }
 
-        // Отправляем информацию о просмотре
-        long seconds = Instant.now().getEpochSecond();
-        int nanos = Instant.now().getNano();
-
-        UserActionProto actionProto = UserActionProto.newBuilder()
-                .setUserId(userId)
-                .setEventId(id)
-                .setActionType(ActionTypeProto.ACTION_VIEW)
-                .setTimestamp(
-                        com.google.protobuf.Timestamp.newBuilder()
-                                .setSeconds(seconds)
-                                .setNanos(nanos)
-                )
-                .build();
-
-        collector.sendUserAction(actionProto);
+//        // Отправляем информацию о просмотре
+//        long seconds = Instant.now().getEpochSecond();
+//        int nanos = Instant.now().getNano();
+//
+//        UserActionProto actionProto = UserActionProto.newBuilder()
+//                .setUserId(userId)
+//                .setEventId(id)
+//                .setActionType(ActionTypeProto.ACTION_VIEW)
+//                .setTimestamp(
+//                        com.google.protobuf.Timestamp.newBuilder()
+//                                .setSeconds(seconds)
+//                                .setNanos(nanos)
+//                )
+//                .build();
+//
+//        collector.sendUserAction(actionProto);
 
         EventFullDto result = eventMapper.toFullDto(event);
-        result.setRating(getEventRating(id));
+//        result.setRating(0.0);
 
         log.info("Получено публичное событие с ID: {}", id);
         return result;

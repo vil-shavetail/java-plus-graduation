@@ -11,6 +11,7 @@ import ru.practicum.ewm.stats.proto.ActionTypeProto;
 import ru.practicum.ewm.stats.proto.UserActionProto;
 import ru.practicum.service.ParticipationRequestService;
 
+import java.time.Instant;
 import java.util.List;
 
 @RestController
@@ -26,13 +27,21 @@ public class PrivateParticipationRequestController {
             @RequestParam @NotNull Long eventId) {
             ParticipationRequestDto dto = service.addRequest(userId, eventId);
 
-//        // Отправляем информацию о регистрации на мероприятие
-//        UserActionProto actionProto = UserActionProto.newBuilder()
-//                .setUserId(userId)
-//                .setEventId(eventId)
-//                .setActionType(ActionTypeProto.ACTION_REGISTER)
-//                .build();
-//        collector.newUserAction(actionProto);
+        // Отправляем информацию о регистрации на мероприятие
+        long seconds = Instant.now().getEpochSecond();
+        int nanos = Instant.now().getNano();
+        UserActionProto actionProto = UserActionProto.newBuilder()
+                .setUserId(userId)
+                .setEventId(eventId)
+                .setActionType(ActionTypeProto.ACTION_REGISTER)
+                .setTimestamp(
+                        com.google.protobuf.Timestamp.newBuilder()
+                                .setSeconds(seconds)
+                                .setNanos(nanos)
+                )
+                .build();
+
+        collector.sendUserAction(actionProto);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
