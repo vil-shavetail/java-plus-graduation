@@ -9,11 +9,11 @@ grpc:
       keepAliveWithoutCalls: true
       negotiationType: plaintext
 
-  collector: # <- должно соответствовать значению в @GrpcClient
-    address: 'discovery:///collector' # адрес gRPC-сервиса
-    enableKeepAlive: true
-    keepAliveWithoutCalls: true
-    negotiationType: plaintext
+    collector: # <- должно соответствовать значению в @GrpcClient
+      address: 'discovery:///collector' # адрес gRPC-сервиса
+      enableKeepAlive: true
+      keepAliveWithoutCalls: true
+      negotiationType: plaintext
 
 spring:
   application:
