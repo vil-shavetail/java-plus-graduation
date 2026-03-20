@@ -7,6 +7,7 @@ import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.AnalyzerClient;
@@ -19,6 +20,7 @@ import ru.practicum.ewm.stats.proto.ActionTypeProto;
 import ru.practicum.ewm.stats.proto.RecommendedEventProto;
 import ru.practicum.ewm.stats.proto.UserActionProto;
 import ru.practicum.ewm.stats.proto.UserPredictionsRequestProto;
+import ru.practicum.exception.BadRequestException;
 import ru.practicum.service.EventService;
 
 import java.time.Instant;
@@ -115,12 +117,18 @@ public class PublicEventController {
                 .collect(Collectors.toList());
     }
 
-    @PutMapping("/events/{eventId}/like")
-    public void likeEvent(@PathVariable Long eventId,
-                          @RequestHeader(X_EWM_USER_ID) long userId) {
-        eventService.addLike(userId, eventId);
+    @PutMapping("/{eventId}/like")
+    public void likeEvent(
+            @PathVariable @Min(1) Long eventId,
+            @RequestHeader(X_EWM_USER_ID) Long userId) {
 
-        // Отправляем информацию о регистрации на мероприятие
+        log.info("PUT /events/{}/like: eventId={}, userId={}", eventId, eventId, userId);
+
+        if (!eventService.hasUserVisitedEvent(userId, eventId)) {
+            throw new BadRequestException("Пользователь не посещал это мероприятие");
+        }
+
+        // Отправляем информацию об отправке лайка
         long seconds = Instant.now().getEpochSecond();
         int nanos = Instant.now().getNano();
         UserActionProto actionProto = UserActionProto.newBuilder()

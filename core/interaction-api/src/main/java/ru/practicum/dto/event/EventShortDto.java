@@ -71,9 +71,4 @@ public class EventShortDto {
      * Количество просмотров события
      */
     private Double rating;
-
-    /**
-     * Количество лайков события
-     */
-    private long likesCount;
 }

@@ -111,9 +111,4 @@ public class EventFullDto {
      * Количество просмотров события
      */
     private Double rating;
-
-    /**
-     * Количество лайков события
-     */
-    private long likesCount;
 }

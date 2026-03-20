@@ -3,12 +3,15 @@ package ru.practicum.service;
 import com.querydsl.core.BooleanBuilder;
 import io.grpc.StatusRuntimeException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 import ru.practicum.AnalyzerClient;
 import ru.practicum.CollectorClient;
 import ru.practicum.RequestClient;
@@ -170,7 +173,6 @@ public class EventService {
 
         EventFullDto result = eventMapper.toFullDto(event);
         result.setRating(getEventRating(id));
-        result.setLikesCount(eventRepository.countLikesByEventId(result.getId()));
 
         log.info("Получено публичное событие с ID: {}", id);
         return result;
@@ -573,14 +575,14 @@ public class EventService {
         }
     }
 
-    public EventFullDto addLike(long userId, long eventId) {
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new NotFoundException("Event with id " + eventId + " not found"));
-        if (event.getState() != EventState.PUBLISHED) {
-            throw new ConflictException("Event with id " + eventId + " is not published");
-        }
-        eventRepository.addLike(userId, eventId);
-        event.setLikes(eventRepository.countLikesByEventId(eventId));
-        return eventMapper.toFullDto(event);
+    /**
+     * Проверяет, посещал ли пользователь мероприятие (по наличию подтверждённой заявки)
+     */
+    public boolean hasUserVisitedEvent(Long userId, Long eventId) {
+        return requestClient.existsByRequesterAndEventIdAndStatus(
+                userId,
+                eventId,
+                ParticipationStatus.CONFIRMED
+        );
     }
 }
