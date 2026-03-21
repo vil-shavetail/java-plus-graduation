@@ -33,7 +33,7 @@ public interface EventMapper {
      * @param event Event entity
      * @return EventFullDto
      */
-    @Mapping(target = "views", ignore = true)
+    @Mapping(target = "rating", ignore = true)
     @Mapping(target = "confirmedRequests", source = "confirmedRequests")
     EventFullDto toFullDto(Event event);
 
@@ -43,6 +43,7 @@ public interface EventMapper {
      * @param event Event entity
      * @return EventSFRDto
      */
+    @Mapping(target = "rating", ignore = true)
     @Mapping(target = "confirmedRequests", source = "confirmedRequests")
     EventSFRDto toSFRDto(Event event);
 
@@ -53,7 +54,7 @@ public interface EventMapper {
      * @param event Event entity
      * @return EventShortDto
      */
-    @Mapping(target = "views", ignore = true)
+    @Mapping(target = "rating", ignore = true)
     @Mapping(target = "confirmedRequests", source = "confirmedRequests")
     EventShortDto toShortDto(Event event);
 

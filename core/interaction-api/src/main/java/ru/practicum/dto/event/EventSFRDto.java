@@ -48,4 +48,9 @@ public class EventSFRDto {
      * Нужна ли пре-модерация заявок на участие
      */
     private Boolean requestModeration;
+
+    /**
+     * Количество просмотров события
+     */
+    private Double rating;
 }

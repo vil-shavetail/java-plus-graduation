@@ -1,0 +1,31 @@
+server:
+  port: 0
+
+grpc:
+  server:
+    port: 0
+
+spring:
+  application:
+    name: collector
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      client-id: "stats.collector"
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: ru.practicum.AvroSerializer
+
+collector:
+  kafka:
+    producer:
+      topic:
+        actions: "stats.user-actions.v1"
+
+logging:
+  level:
+    ru:
+      practicum: TRACE
+    org:
+      springframework: ERROR
+      apache.kafka: ERROR

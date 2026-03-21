@@ -9,11 +9,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.CollectorClient;
 import ru.practicum.dto.event.EventFullDto;
+import ru.practicum.dto.event.EventRecommendationDto;
 import ru.practicum.dto.event.EventShortDto;
 import ru.practicum.enumeration.EventSort;
+import ru.practicum.ewm.stats.proto.ActionTypeProto;
+import ru.practicum.ewm.stats.proto.UserActionProto;
+import ru.practicum.exception.BadRequestException;
 import ru.practicum.service.EventService;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -26,8 +32,9 @@ import java.util.List;
 @Slf4j
 @Validated
 public class PublicEventController {
-
+    public static final String X_EWM_USER_ID = "X-EWM-USER-ID";
     private final EventService eventService;
+    private final CollectorClient collector;
 
     /**
      * Получение событий с возможностью фильтрации
@@ -69,16 +76,53 @@ public class PublicEventController {
      * Получение подробной информации об опубликованном событии по его идентификатору
      *
      * @param id id события
-     * @param request HTTP запрос (для получения IP и URI для статистики)
+     * @param userId id пользователя
      * @return подробная информация о событии
      */
     @GetMapping("/{id}")
     public EventFullDto getEventById(
             @PathVariable @Min(1) Long id,
-            HttpServletRequest request) {
+            @RequestHeader(X_EWM_USER_ID) Long userId) {
 
-        log.info("GET /events/{}: id={}", id, id);
+        log.info("GET /events/{}: id={}, userId={}", id, id, userId);
+        return eventService.getPublicEventById(id, userId);
+    }
 
-        return eventService.getPublicEventById(id, request);
+    @GetMapping("/recommendations")
+    public List<EventRecommendationDto> getEventRecommendations(
+            @RequestHeader(X_EWM_USER_ID) long userId,
+            @RequestParam(defaultValue = "10") @Positive Integer size) {
+
+        log.info("GET /events/recommendations: userId={}, size={}", userId, size);
+
+        return eventService.getEventRecommendations(userId, size);
+    }
+
+    @PutMapping("/{eventId}/like")
+    public void likeEvent(
+            @PathVariable @Min(1) Long eventId,
+            @RequestHeader(X_EWM_USER_ID) Long userId) {
+
+        log.info("PUT /events/{}/like: eventId={}, userId={}", eventId, eventId, userId);
+
+        if (!eventService.hasUserVisitedEvent(userId, eventId)) {
+            throw new BadRequestException("Пользователь не посещал это мероприятие");
+        }
+
+        // Отправляем информацию об отправке лайка
+        long seconds = Instant.now().getEpochSecond();
+        int nanos = Instant.now().getNano();
+        UserActionProto actionProto = UserActionProto.newBuilder()
+                .setUserId(userId)
+                .setEventId(eventId)
+                .setActionType(ActionTypeProto.ACTION_LIKE)
+                .setTimestamp(
+                        com.google.protobuf.Timestamp.newBuilder()
+                                .setSeconds(seconds)
+                                .setNanos(nanos)
+                )
+                .build();
+
+        collector.sendUserAction(actionProto);
     }
 }

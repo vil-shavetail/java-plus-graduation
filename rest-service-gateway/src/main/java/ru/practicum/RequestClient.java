@@ -1,12 +1,14 @@
 package ru.practicum;
 
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.context.annotation.Primary;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.dto.request.ParticipationRequestDto;
 import ru.practicum.enumeration.ParticipationStatus;
 
 import java.util.List;
 
+@Primary
 @FeignClient(name = "request-service", path = "/client/request", fallback = RequestClientFallback.class)
 public interface RequestClient {
     @GetMapping("/exists?requesterId={requesterId}&eventId={eventId}&status={status}")

@@ -5,9 +5,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.CollectorClient;
 import ru.practicum.dto.request.ParticipationRequestDto;
+import ru.practicum.ewm.stats.proto.ActionTypeProto;
+import ru.practicum.ewm.stats.proto.UserActionProto;
 import ru.practicum.service.ParticipationRequestService;
 
+import java.time.Instant;
 import java.util.List;
 
 @RestController
@@ -15,13 +19,31 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PrivateParticipationRequestController {
     private final ParticipationRequestService service;
+    private final CollectorClient collector;
 
     @PostMapping()
     public ResponseEntity<ParticipationRequestDto> addRequest(
             @PathVariable @NotNull Long userId,
             @RequestParam @NotNull Long eventId) {
             ParticipationRequestDto dto = service.addRequest(userId, eventId);
-            return ResponseEntity.status(HttpStatus.CREATED).body(dto);
+
+        // Отправляем информацию о регистрации на мероприятие
+        long seconds = Instant.now().getEpochSecond();
+        int nanos = Instant.now().getNano();
+        UserActionProto actionProto = UserActionProto.newBuilder()
+                .setUserId(userId)
+                .setEventId(eventId)
+                .setActionType(ActionTypeProto.ACTION_REGISTER)
+                .setTimestamp(
+                        com.google.protobuf.Timestamp.newBuilder()
+                                .setSeconds(seconds)
+                                .setNanos(nanos)
+                )
+                .build();
+
+        collector.sendUserAction(actionProto);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
 
     @PatchMapping("/{requestId}/cancel")

@@ -70,5 +70,5 @@ public class EventShortDto {
     /**
      * Количество просмотров события
      */
-    private Long views;
+    private Double rating;
 }

@@ -1,0 +1,35 @@
+server:
+  port: 0
+
+spring:
+  application:
+    name: aggregator
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: "stats.aggregator.consumer"
+      client-id: "stats.aggregator"
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: ru.practicum.ActionTypeDeserializer
+    producer:
+      client-id: "stats.aggregator"
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: ru.practicum.AvroSerializer
+
+aggregator:
+  kafka:
+    consumer:
+      topic:
+        actions: "stats.user-actions.v1"
+    producer:
+      topic:
+        events: "stats.events-similarity.v1"
+
+logging:
+  level:
+    ru:
+      practicum: TRACE
+    org:
+      springframework: ERROR
+      apache.kafka: ERROR

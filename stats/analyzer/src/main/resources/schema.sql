@@ -1,0 +1,20 @@
+DROP TABLE IF EXISTS interaction;
+DROP TABLE IF EXISTS similarity;
+
+CREATE TABLE IF NOT EXISTS interaction (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    event_id BIGINT NOT NULL,
+    rating FLOAT NOT NULL,
+    tmsp TIMESTAMP WITH TIME ZONE NOT NULL,
+    UNIQUE (user_id, event_id)
+);
+
+CREATE TABLE IF NOT EXISTS similarity (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    event1 BIGINT NOT NULL,
+    event2 BIGINT NOT NULL,
+    similarity_score FLOAT NOT NULL,
+    tmsp TIMESTAMP WITH TIME ZONE NOT NULL,
+    UNIQUE (event1, event2)
+);
